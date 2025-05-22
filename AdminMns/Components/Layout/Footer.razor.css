@@ -1,0 +1,27 @@
+﻿/* _-_-_-_-_-_- _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    */
+/* FOOTER --------------------------------------------------------- */
+
+.navFooter {
+    background-color: var(--orange);
+    margin-top: auto; /* Pousse le footer en bas */
+    height: 50px;
+    width:100%;
+}
+
+.navUlFooter {
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    list-style: none;
+    align-items: center;
+}
+
+.texteNavFooter {
+    font-size: small;
+    color: black;
+}
+
+.textCopy {
+    font-size: small;
+    color: black;
+}

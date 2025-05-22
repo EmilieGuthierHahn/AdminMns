@@ -1,0 +1,100 @@
+﻿@page "/Inscription"
+@layout MainLayoutAdmin
+    <div class=" contPageInscription">
+        <h1 class="titreInscription">Page d'inscription des apprenants</h1>
+        <div class="containerGLobalInscription">
+ 
+            <main class="col-md-9 col-lg-10">
+                <div class="formInscription bg-gris rounded p-4 shadow">
+                    <form method="post" action="">
+                        <div class="row">
+                            <div class="col-md-3 mt-3">
+                                <label for="nomUser" class="form-label">Nom</label>
+                                <input type="text" class="form-control" id="nomUser" name="nom_user" value="" required>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="prenomUser" class="form-label">Prénom</label>
+                                <input type="text" class="form-control" id="prenomUser" name="prenom_user" value="" required>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="numRue" class="form-label">Numéro rue </label>
+                                <input type="text" class="form-control" id="numRue" name="numero_rue" value="" required>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="nomRue" class="form-label">Nom rue</label>
+                                <input type="text" class="form-control" id="nomRue" name="nom_rue" value="" required>
+                            </div>
+                        </div>
+                     <div class="row"> 
+                            <div class="col-md-3 mt-3">
+                                <label for="ville" class="form-label">Ville</label>
+                                <select type="text" class="form-select" id="ville" name="ville" required>
+                                    <option selected disabled value="">Choisissez votre ville</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="anniUser" class="form-label">Date de naissance</label>
+                                <input type="date" class="form-control" id="anniUser" name="anniUser"
+                                    value="">
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="telephone" class="form-label">Numéro de Téléphone </label>
+                                <input type="text" class="form-control" id="telephone" name="telephone" value="">
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="mailUser" class="form-label">Adresse mail</label>
+                                <input type="text" class="form-control" id="mailUser" name="email_user" value="" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                         
+                            <div class="col-md-3 mt-3">
+                                <label for="mdpUser" class="form-label">Mot de passe</label>
+                                <input type="password" class="form-control" id="mdpUser" name="mdp_user" value="" required>
+                            </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="mdpConfirme" class="form-label">Confirmer le mot de passe</label>
+                                <input type="password" class="form-control" id="mdpConfirme" name="mdpConfirm" value="" required>
+                            </div>
+                            
+                                <div class="col-md-3 mt-3">
+                                    <label for="dept" class="form-label">Statut</label>
+                                    <select class="form-select" id="dept" name="departement" required>
+                                        <option selected>Choisissez un statut</option>
+                                        <option value="1">Stagiaire</option>
+                                        <option value="2">Candidat</option>
+                                        <option value="3">Intervenant</option>
+                                        <option value="4">Administration</option>
+                                    </select>
+                                </div>
+                            <div class="col-md-3 mt-3">
+                                <label for="numeroEtudiant" class="form-label">Numéro étudiant</label>
+                                <input type="text" class="form-control" id="numeroEtudiant" name="numeroEtudiant" value="" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 mt-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+                                    <label class="form-check-label" for="invalidCheck">
+                                        Accepter les termes et conditions
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-3">
+                                <button class="btn btnFormInscription btn-primary" type="submit">Envoyer</button>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <img src="./images/MNSLogo.png" alt="Logo MNS" class="img-fluid" style="width: 250px;">
+                        </div>
+                    </form>
+                </div>
+            </main>
+        </div>
+    <div id="footer">
+        <Footer />
+    </div>
+    </div>
+ 	
+    

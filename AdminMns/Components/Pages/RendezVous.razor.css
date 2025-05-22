@@ -1,0 +1,29 @@
+﻿.containerGlobalRendezVous {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Assure que le conteneur global prend au moins la hauteur de la fenêtre */
+    width : 100%;
+}
+
+.contPageRendezVous {
+    position: relative;
+    overflow: hidden;
+    height: 100%; /* Important : Permet au conteneur de prendre toute la hauteur de son parent */
+    flex-grow: 1; /* Permet à la section de s'étirer pour occuper l'espace disponible */
+}
+
+    .contPageRendezVous::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url(./images/pageRendezVous.jpg);
+        background-size: cover;
+        background-position: center;
+        opacity: 0.5;
+        z-index: -1;
+    }
+
+

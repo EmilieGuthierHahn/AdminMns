@@ -1,0 +1,48 @@
+﻿/* _-_-_-_-_-_- _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    */
+/* DECLARER UN RETARD---------------------------------------------------------------------------- */
+.containerGlobalDeclarerRetard {
+    display: flex;
+    flex-direction: column;
+   height : auto;
+    width : 100%;
+}
+
+.contDeclarerRetard {
+    position: relative;
+    overflow: hidden;
+    height: auto;
+    flex-grow: 1; /* Permet à la section de s'étirer */
+}
+
+.containerGlobalDeclarerRetard::before {
+    content: "";
+    /* Obligatoire pour que le pseudo-élément soit visible */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url(/images/declarerRetard.jpg);
+    background-size: cover;
+    background-position: center;
+    opacity: 0.5;
+    /* Ajuste l'opacité selon tes besoins */
+    z-index: -1;
+    /* Place l'image derrière le contenu */
+}
+
+.titreRetard {
+    width: 50%;
+    position: relative;
+    left: 30%;
+}
+
+.containerDeclarerRetard {
+    border: solid 2px var(--gris);
+    border-radius: 10px;
+    width: 50%;
+    height: 50%;
+    margin-top: 200px;
+    margin-left: 250px;
+    font-weight: bold;
+}

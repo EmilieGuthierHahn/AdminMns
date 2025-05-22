@@ -1,0 +1,37 @@
+﻿/* _-_-_-_-_-_- _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    */
+/* PAGE  CONNEXION */
+.moncontainerConnexion {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+    .moncontainerConnexion::before {
+        content: "";
+        /* Obligatoire pour que le pseudo-élément soit visible */
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url(./images/PageConnexion.jpg);
+        background-size: cover;
+        background-position: center;
+        opacity: 0.5;
+        /* Ajuste l'opacité selon tes besoins */
+        z-index: -1;
+        /* Place l'image derrière le contenu */
+    }
+
+.insciptionFormu {
+    box-shadow: 5px 5px 10px 5px black;
+    background-color: var(--gris);
+    border-radius: 10px;
+}
+
+.boutonFormCo {
+    box-shadow: 5px 5px 10px 5px black;
+}

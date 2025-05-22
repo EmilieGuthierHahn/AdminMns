@@ -1,0 +1,81 @@
+﻿.containerGLobalProfil {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    width: 100%;
+}
+
+.titreProfil {
+    text-align: center;
+    margin-top: 50px;
+}
+
+.contPageProfil {
+    position: relative;
+    overflow: hidden;
+    height: auto;
+}
+
+    .contPageProfil::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url(./images/pageProfil.jpg);
+        background-size: cover;
+        background-position: center;
+        opacity: 0.5;
+        z-index: -1;
+    }
+
+.formInscription {
+    width: auto;
+    max-width: 100%;
+    margin: 40px;
+    height: auto;
+}
+
+.btnFormInscription {
+    font-weight: bold;
+    background-color: var(--bleu);
+}
+
+    .btnFormInscription:hover {
+        background-color: var(--orange);
+    }
+
+/* ACCORDEONs */
+.contAccordeon {
+    width: 90%;
+    margin-bottom: 50px;
+    box-shadow: 5px 5px 10px 5px var(--gris);
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: white;
+    box-shadow: 5px 5px 10px 5px var(--bleu);
+}
+
+.btnChangementMdp {
+    font-weight: bold;
+    background-color: white;
+    margin-top: 20px;
+    width: 150px;
+    height: 40px;
+    border: none;
+    box-shadow: 5px 5px 10px 5px var(--bleu);
+    margin-bottom: 30px;
+}
+
+.btnChangementImage {
+    font-weight: bold;
+    background-color: var(--gris);
+    margin-top: 20px;
+    width: 300px;
+    height: 40px;
+    border: none;
+    box-shadow: 5px 5px 10px 5px var(--bleu);
+    margin-bottom: 30px;
+}

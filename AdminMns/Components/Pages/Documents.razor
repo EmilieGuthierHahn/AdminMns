@@ -1,0 +1,92 @@
+﻿@page "/Documents"
+
+
+<div class="containerGlobalDocument">
+	<div class="container-fluid contPageDocument">
+		<div class="containerNotifications">
+			<div class="notification">
+				<i class="bi bi-bell"></i>
+			</div>
+			<div class="notifMessage">
+				<i class="bi bi-chat-left-dots"></i>
+			</div>
+		</div>
+		<div class="row">
+			<main class="deuxiemeContainerDocument col-md-9 ms-sm-auto col-lg-10 px-md-4">
+				<div class="titreAccueil text-center mt-3">
+					<h1>Mes documents</h1>
+				</div>
+
+				<div class="containerRectangles">
+					<div class="rectangles d-flex justify-content-center mt-5">
+						<div class="rectangleUn bg-orange rounded p-3 text-center me-3">
+							<a class=link href="./declarerAbsence.html"><i class="bi bi-filetype-doc"></i> Déclarer une absence</a>
+						</div>
+						<div class="rectangleDeux bg-orange rounded p-3 text-center me-3">
+							<a class=link href="./declarerRetard.html"><i class="bi bi-filetype-doc"></i> Déclarer un retard</a>
+						</div>
+						<div class="rectangleTrois bg-orange rounded p-3 text-center">
+							<a class=link href="./envoieDocuments.html"><i class="bi bi-filetype-doc"></i> Remettre un document</a>
+						</div>
+					</div>
+					<div class="nombreAbsence">
+						<div class="rectangleRetard bg-orange rounded p-3 text-center me-3">
+							<i class="bi bi-filetype-doc"></i> Nombre des retard : 0
+						</div>
+						<div class="rectangleAbsence bg-orange rounded p-3 text-center">
+							<i class="bi bi-filetype-doc"></i> Nombre d'absence : 2
+						</div>
+						<div class="rectangleDocument bg-orange rounded p-3 text-center">
+							<i class="bi bi-filetype-doc"></i> Documents à rendre : 3
+						</div>
+					</div>
+					<div class="coupurePage">
+						<div class="pacman"></div>
+					</div>
+					<table class="tableauDocuments">
+						<thead>
+							<tr>
+
+								<th scope="col">Nom du document</th>
+								<th scope="col">Type du dossier</th>
+								<th scope="col">Date</th>
+								<th scope="col">Statut</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td scope="row">Lettre de motivation</td>
+								<td>Dossier d'inscription</td>
+								<td>08.08.24</td>
+								<td>Reçu <i class="bi bi-check2-circle"></i></td>
+
+							</tr>
+							<tr>
+								<td scope="row">CV</td>
+								<td>Dossier d'inscription</td>
+								<td>08.08.24</td>
+								<td>Reçu <i class="bi bi-check2-circle"></i></td>
+							</tr>
+							<tr>
+								<td scope="row">Contrat stagiaire</td>
+								<td>Dossier stagiaire</td>
+								<td>09.09.24</td>
+								<td>Reçu <i class="bi bi-check2-circle"></i></td>
+							</tr>
+							<tr>
+								<td scope="row">Fiche de renseignements</td>
+								<td>Dossier stagiaire</td>
+								<td>09.09.24</td>
+								<td>En attente <i class="bi bi-x-circle"></i></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</main>
+			
+		</div>
+	</div>
+	<div id="footer">
+		<Footer />
+	</div>
+</div>

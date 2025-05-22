@@ -1,0 +1,96 @@
+﻿@page "/Connexion"
+@inject AdminMns.Components.Services.AuthService AuthService // Injecte votre service d'authentification
+@inject NavigationManager NavigationManager // Injecte le gestionnaire de navigation de Blazor
+
+<PageTitle>Connexion</PageTitle>
+
+<h3>Connexion</h3>
+
+@*
+    Ce bloc représente le formulaire de connexion Blazor.
+    EditForm est un composant Blazor qui offre des fonctionnalités pour la validation de formulaire et la soumission.
+    Model="loginRequest" lie le formulaire à l'objet 'loginRequest' défini dans le bloc @code.
+    OnValidSubmit="HandleLogin" appelle la méthode HandleLogin lorsque le formulaire est valide et soumis.
+*@
+<EditForm Model="loginRequest" OnValidSubmit="HandleLogin">
+    @*
+        DataAnnotationsValidator active la validation basée sur les Data Annotations (attributs comme [Required], [EmailAddress])
+        définis sur les propriétés du modèle 'loginRequest'.
+    *@
+    <DataAnnotationsValidator />
+    @*
+        ValidationSummary affiche une liste de tous les messages d'erreur de validation pour le formulaire.
+    *@
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label for="email">Adresse Email:</label>
+        @*
+            InputText est un composant Blazor pour l'entrée de texte.
+            @bind-Value="loginRequest.Email" crée une liaison de données bidirectionnelle :
+            - Les changements dans le champ mettent à jour loginRequest.Email.
+            - Les changements dans loginRequest.Email mettent à jour le champ.
+        *@
+        <InputText id="email" class="form-control" @bind-Value="loginRequest.Email" />
+        @*
+            ValidationMessage affiche le message d'erreur de validation spécifique à ce champ
+            si une erreur est détectée pour loginRequest.Email.
+        *@
+        <ValidationMessage For="@(() => loginRequest.Email)" />
+    </div>
+    <div class="form-group">
+        <label for="password">Mot De Passe:</label>
+        <InputText id="password" type="password" class="form-control" @bind-Value="loginRequest.MotDePasse" />
+        <ValidationMessage For="@(() => loginRequest.MotDePasse)" />
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary">Se connecter</button>
+
+    @*
+        Ce bloc affiche un message d'erreur si la variable 'errorMessage' n'est pas vide,
+        ce qui se produit si la connexion à l'API backend échoue.
+    *@
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger mt-3" role="alert">
+            @errorMessage
+        </div>
+    }
+</EditForm>
+
+@code {
+    // Crée une instance du modèle de requête de connexion.
+    // Les propriétés de cet objet seront liées aux champs du formulaire ci-dessus.
+    private LoginRequest loginRequest = new LoginRequest();
+
+    // Variable pour stocker les messages d'erreur à afficher à l'utilisateur (ex: "Identifiants invalides").
+    private string errorMessage = string.Empty;
+
+    // Méthode asynchrone appelée lorsque le formulaire est validé et soumis.
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty; // Réinitialise tout message d'erreur précédent.
+
+        // Appelle la méthode Login de notre AuthService, qui communique avec l'API backend.
+        var result = await AuthService.Login(loginRequest);
+
+        if (result.Successful) // Si la connexion a réussi (le backend a renvoyé un token valide)
+        {
+            // Redirige l'utilisateur vers la page d'accueil ("/").
+            // forceLoad: true assure un rechargement complet de la page et de l'état d'authentification de Blazor.
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+        else // Si la connexion a échoué
+        {
+            // Stocke le message d'erreur renvoyé par le service d'authentification pour l'afficher à l'utilisateur.
+            errorMessage = result.Error;
+        }
+    }
+
+    // Note : Les classes LoginRequest, LoginResponse, LoginResult sont définies dans AuthService.cs ou un fichier de modèle partagé.
+    // Assurez-vous qu'elles sont accessibles ici. Si vous avez mis AuthService dans un namespace
+    // (ex: AdminMns.Components.Services), et les DTOs en dehors de ce namespace,
+    // vous devrez peut-être les déclarer dans ce fichier ou dans un fichier de modèle Blazor.
+    // L'option la plus simple est de s'assurer que les DTOs sont dans un namespace partagé ou qu'ils sont "public class"
+    // et accessibles depuis le namespace de la page Razor.
+}

@@ -1,0 +1,137 @@
+﻿/* _-_-_-_-_-_- _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    */
+/* PAGE  Accueil */
+.containerGlobalAccueil {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.contPageAccueil {
+    position: relative;
+    overflow: hidden;
+    height: auto;
+    flex-grow: 1; /* Permet à la section de s'étirer */
+}
+
+    .contPageAccueil::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url(./images/pageAccueil.jpg);
+        background-size: cover;
+        background-position: center;
+        opacity: 0.5;
+        z-index: -1;
+    }
+
+.deuxiemeContainerAccueil {
+    width: auto;
+    margin-right: 20%;
+}
+
+.titreAccueil {
+    width: 50%;
+    position: relative;
+    left: 30%;
+}
+
+.bonjourAccueil {
+    width: 50%;
+    position: relative;
+    left: 30%;
+}
+
+.link {
+    color: black;
+}
+
+a.link {
+    color: black;
+    text-decoration: none;
+}
+
+.containerNotifications {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    margin-top: 10px;
+}
+
+.notification {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+}
+
+.notifMessage {
+    width: 50px;
+    height: 50px;
+    margin: 5px;
+}
+
+    .notification i,
+    .notifMessage i {
+        margin-right: 10px;
+        font-size: 2em; /* Ajustez la taille selon vos besoins */
+        /* Vous pouvez ajouter d'autres styles ici, comme la couleur, la marge, etc. */
+    }
+
+/* Si vous voulez des styles différents pour chaque icône */
+.notification i {
+    color: black; /* Exemple de couleur pour la cloche */
+}
+
+.notifMessage i {
+    color: black
+}
+
+.affichageSalles img {
+    margin-top: 50px;
+    max-width: 100%;
+    height: auto;
+    margin: 40px;
+    border-radius: 10px;
+}
+
+.containerRectangles {
+    width: auto;
+    height: auto;
+    margin-top: 50px;
+}
+
+.rectangles {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.rectangleUn,
+.rectangleDeux,
+.rectangleTrois {
+    background-color: var(--orange);
+    text-align: center;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin: 10px;
+    min-width: 200px;
+    flex-grow: 1;
+    box-shadow: 5px 5px 10px 5px black;
+}
+
+.rectangleRetard,
+.rectangleAbsence,
+.rectangleDocument {
+    background-color: var(--bleu);
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin: 10px;
+    width: 250px;
+    flex-grow: 1;
+    color: white;
+    box-shadow: 2px 2px 2px 2px black;
+}
+

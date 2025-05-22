@@ -1,0 +1,43 @@
+﻿@page "/Statistiques"
+@layout MainLayoutAdmin
+   
+  
+        <div class="container-fluid contPageStat flex-grow-1">
+            <h1 class="titreStat"></h1>
+            <div class="containerGlobalStat">
+               
+                <main class="col-md-9 col-lg-10">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <section id="absencesAnnee">
+                                <h2>Statistiques d'Absences annuelles</h2>
+                                <canvas id="courbeAbsencesAnnee" width="400" height="200"></canvas>
+                            </section>
+                        </div>
+                        <div class="col-md-6">
+                            <section id="absencesMensuel">
+                                <h2>Statistiques d'Absences mensuelles</h2>
+                                <canvas id="courbeAbsencesMensuel" width="400" height="200"></canvas>
+                            </section>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <section id="retardsAnnee">
+                                <h2>Statistiques de Retards annuels</h2>
+                                <canvas id="courbeRetardsAnnee" width="400" height="200"></canvas>
+                            </section>
+                        </div>
+                        <div class="col-md-6">
+                            <section id="retards">
+                                <h2>Statistiques de Retards mensuels</h2>
+                                <canvas id="courbeRetardsMensuel" width="400" height="200"></canvas>
+                            </section>
+                        </div>
+                    </div>
+                </main>
+            </div>
+    <div id="footer">
+        <Footer />
+    </div>
+        </div>

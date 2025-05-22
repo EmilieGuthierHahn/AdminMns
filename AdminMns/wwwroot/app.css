@@ -1,0 +1,30 @@
+html, body {
+    height: 100%; /* Assure que HTML et Body prennent 100% de la hauteur du viewport */
+    margin: 0; /* Supprime les marges par défaut */
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%; /* Assure que le conteneur principal prend au moins 100% de la hauteur */
+}
+
+.page {
+    flex-grow: 1; /* Permet à la section de la page de s'étirer pour occuper l'espace disponible */
+    display: flex; /* Important pour que les enfants (comme containerGlobalRendezVous) puissent utiliser height: 100% */
+    flex-direction: column;
+    min-height: 100%; /* Ajout important : Assure que la page prend toute la hauteur de .main */
+    width: 100%;
+}
+
+.* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --orange: rgba(255, 107, 12, 1);
+    --bleu: rgba(47, 60, 112, 1);
+    --gris: rgba(192, 195, 211, 1);
+}

@@ -1,0 +1,52 @@
+﻿@page "/AccueilAdministrateur"
+@layout MainLayoutAdmin
+
+
+
+<div class="containerGlobalAccueilAdmin">
+	<div class="container-fluid contPageAccueil">
+		<div class="containerNotifications">
+			<div class="notification">
+				<i class="bi bi-bell"></i>
+			</div>
+			<div class="notifMessage">
+				<i class="bi bi-chat-left-dots"></i>
+			</div>
+		</div>
+
+
+		<div class="row">
+
+			<main class="deuxiemeContainerAccueilAdmin col-md-9 ms-sm-auto col-lg-10 px-md-4">
+				<div class="titreAccueilAdmin text-center mt-3">
+					<h1>Tableau de bord Administrateur</h1>
+				</div>
+				<div class="bonjourAccueilAdmin text-center mt-4">
+					<h2>Bonjour GUTHIER Emilie</h2>
+				</div>
+				<!-- _-_-_-_-_-_- _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    -->
+				<!--TITRE------------------------------- -->
+				<div class="horloge">
+					<div class="heures"></div>
+					<div class="date"></div>
+				</div>
+				<div class="nombreAbsence">
+					<div class="rectangleRetard bg-orange rounded p-3 text-center me-3">
+						Messages non lus : 0
+					</div>
+					<div class="rectangleAbsence bg-orange rounded p-3 text-center">
+						Rendez-vous : 2
+					</div>
+
+				</div>
+			</main>
+		</div>
+	
+	</div>
+	<div id="footer">
+		<Footer />
+	</div>
+</div>
+
+
+

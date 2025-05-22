@@ -1,0 +1,57 @@
+﻿@page "/"
+
+
+	<title>Accueil</title>
+    <div class="containerGlobalAccueil">
+        <div class=" contPageAccueil">
+            <div class="containerNotifications">
+                <div class="notification">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <div class="notifMessage">
+                    <i class="bi bi-chat-left-dots"></i>
+                </div>
+            </div>
+                <main class="deuxiemeContainerAccueil col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                    <div class="titreAccueil text-center mt-3">
+                        <h1>Tableau de bord étudiant</h1>
+                    </div>
+                    <div class="bonjourAccueil text-center mt-4">
+                        <h2>Bonjour GUTHIER Emilie</h2>
+                    </div>
+                    <div class="affichageSalles text-center">
+                        <img src="./images/planning1.png" alt="planning salles" class="img-fluid">
+                    </div>
+                    <div class="containerRectangles">
+                        <div class="rectangles d-flex justify-content-center mt-5">
+                            <div class="rectangleUn bg-orange rounded p-3 text-center me-3">
+                                <NavLink class=link href="/DeclarerUneAbsence"><i class="bi bi-filetype-doc"></i> Déclarer une absence</NavLink>
+                            </div>
+                            <div class="rectangleDeux bg-orange rounded p-3 text-center me-3">
+                        <NavLink class=link href="/DeclarerUnRetard"><i class="bi bi-filetype-doc"></i> Déclarer un retard</NavLink>
+                            </div>
+                            <div class="rectangleTrois bg-orange rounded p-3 text-center">
+                            <NavLink class=link href="/EnvoieDocuments"><i class="bi bi-filetype-doc"></i> Remettre un document</NavLink>
+                            </div>
+                        </div>
+                        <div class="nombreAbsence">
+                            <div class="rectangleRetard bg-orange rounded p-3 text-center me-3">
+                                <i class="bi bi-filetype-doc"></i> Nombre des retard : 0
+                            </div>
+                            <div class="rectangleAbsence bg-orange rounded p-3 text-center">
+                                <i class="bi bi-filetype-doc"></i> Nombre d'absence : 2
+                            </div>
+                            <div class="rectangleDocument bg-orange rounded p-3 text-center">
+                                <i class="bi bi-filetype-doc"></i> Documents à rendre : 3
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+    <div id="footer">
+        <Footer />
+    </div>
+        </div>
+     
+    
+

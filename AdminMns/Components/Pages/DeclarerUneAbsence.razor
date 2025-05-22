@@ -1,0 +1,56 @@
+﻿
+@page "/DeclarerUneAbsence"
+<div class="containerGlobalDeclarerAbsence">
+	<div class="container-fluid contDeclarerAbsence">
+		<div class="containerNotifications">
+			<div class="notification">
+				<i class="bi bi-bell"></i>
+			</div>
+			<div class="notifMessage">
+				<i class="bi bi-chat-left-dots"></i>
+			</div>
+		</div>
+
+
+		<div class="row">
+			
+
+			<main class="containerDeclarerAbsence">
+				<h1 class="titreAbsence">Déclarer une absence</h1>
+				<select class="form-select" aria-label="Default select example">
+					<option selected>Raison de l'absence</option>
+					<option value="1">Maladie</option>
+					<option value="2">Rendez-vous</option>
+					<option value="3">Transport</option>
+					<option value="3">Autre</option>
+				</select>
+				<div class="mb-3">
+					<label for="exampleFormControlTextarea1" class="form-label">Expliquez plus en détail</label>
+					<textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+				</div>
+				<div class="date-picker mb-3">
+					<label for="start-date">Date de début :</label>
+					<input type="date" id="start-date" name="start-date">
+
+					<label for="end-date">Date de fin :</label>
+					<input type="date" id="end-date" name="end-date">
+				</div>
+
+				<div class="mb-3">
+					<label for="formFile" class="form-label">Envoyez votre justificatif</label>
+					<input class="form-control" type="file" id="formFile">
+				</div>
+				<div class="d-flex mb-3">
+					<button type="submit" class="btn boutonDeclaration m-auto">Envoyer</button>
+				</div>
+
+
+			</main>
+		</div>
+
+	</div>
+	<div id="footer">
+		<Footer />
+	</div>
+</div>
+
