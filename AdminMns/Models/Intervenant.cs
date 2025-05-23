@@ -1,10 +1,11 @@
 ﻿// --- NECESSAIRE EN HAUT DE CHAQUE FICHIER ---
+using AdminMns.Data;
 using System.ComponentModel.DataAnnotations; // Pour [Key]
 
 namespace AdminMns.Models // Assurez-vous que le namespace est correct
 {
     // Correspond à la table 'intervenant'
-  
+
 
     public class Intervenant
     {
@@ -27,8 +28,6 @@ namespace AdminMns.Models // Assurez-vous que le namespace est correct
         public DateTime? DateDeNaissance { get; set; } // Nullable dans SQL
         public DateTime DateDeCreation { get; set; }
 
-        // Clé étrangère
-        public int IdUtilisateur { get; set; }
-        // public virtual Utilisateur Utilisateur { get; set; }
+        public required virtual AppUser Utilisateur { get; set; }
     }
 }

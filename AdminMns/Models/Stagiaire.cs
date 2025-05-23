@@ -1,6 +1,5 @@
 ﻿// Dans Models/Stagiaire.cs
-using System;
-using System.Collections.Generic; // <-- Assurez-vous que ce using est présent pour ICollection et HashSet
+using AdminMns.Data;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -41,11 +40,7 @@ namespace AdminMns.Models
         [MaxLength(50)]
         public string Ville { get; set; } = null!;
 
-        [Required(ErrorMessage = "L'ID utilisateur est requis pour lier le stagiaire à un compte utilisateur.")]
-        public int IdUtilisateur { get; set; }
-
-        [ForeignKey("IdUtilisateur")]
-        public virtual Utilisateur? Utilisateur { get; set; }
+        public required virtual AppUser Utilisateur { get; set; }
 
         // --- NOUVELLES LIGNES À AJOUTER ICI ---
         // Propriété de navigation vers la table de liaison RetardStagiaire
