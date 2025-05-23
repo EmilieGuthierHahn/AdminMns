@@ -1,0 +1,327 @@
+﻿@page "/Account/Register"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using AdminMns.Data 
+@using Microsoft.AspNetCore.Components.Forms 
+
+@inject UserManager<AppUser> UserManager
+@inject IUserStore<AppUser> UserStore
+@inject SignInManager<AppUser> SignInManager
+@inject IEmailSender<AppUser> EmailSender
+@inject ILogger<Register> Logger
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Inscription au Journal de Bord</PageTitle>
+
+<div class="contPageInscription">
+    <h1 class="titreInscription">Page d'inscription</h1>
+    <div class="containerGLobalInscription">
+        <main class="col-md-9 col-lg-10">
+            <div class="formInscription bg-gris rounded p-4 shadow">
+                <StatusMessage Message="@Message" />
+                <EditForm Model="Input" OnValidSubmit="RegisterUser" FormName="register" method="post">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger" role="alert" />
+
+                    <div class="row">
+                        <div class="col-md-3 mt-3">
+                            <label for="nomUser" class="form-label">Nom</label>
+                            <InputText @bind-Value="Input.Nom" class="form-control" id="nomUser" placeholder="Shepard" aria-required="true" />
+                            <ValidationMessage For="() => Input.Nom" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="prenomUser" class="form-label">Prénom</label>
+                            <InputText @bind-Value="Input.Prenom" class="form-control" id="prenomUser" placeholder="John / Jane" aria-required="true" />
+                            <ValidationMessage For="() => Input.Prenom" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="numRue" class="form-label">Numéro rue </label>
+                            <InputText @bind-Value="Input.NumeroRue" class="form-control" id="numRue" placeholder="21B" aria-required="true" />
+                            <ValidationMessage For="() => Input.NumeroRue" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="nomRue" class="form-label">Nom rue</label>
+                            <InputText @bind-Value="Input.NomRue" class="form-control" id="nomRue" placeholder="Citadel Lane" aria-required="true" />
+                            <ValidationMessage For="() => Input.NomRue" class="text-danger" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mt-3">
+                            <label for="ville" class="form-label">Ville</label>
+                            <InputSelect @bind-Value="Input.Ville" class="form-select" id="ville" aria-required="true">
+                                <option value="">Choisissez votre ville</option>
+                                <option value="Presidium">Presidium</option>
+                                <option value="Zakera Ward">Zakera Ward</option>
+                                <option value="Lower Wards">Lower Wards</option>
+                                <option value="Omega">Omega</option>
+                                <option value="Illium">Illium</option>
+                                <option value="Tuchanka">Tuchanka</option>
+                            </InputSelect>
+                            <ValidationMessage For="() => Input.Ville" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="anniUser" class="form-label">Date de naissance</label>
+                            <InputDate @bind-Value="Input.DateNaissance" class="form-control" id="anniUser" aria-required="true" />
+                            <ValidationMessage For="() => Input.DateNaissance" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="telephone" class="form-label">Numéro de Téléphone </label>
+                            <InputText @bind-Value="Input.Telephone" class="form-control" id="telephone" placeholder="+33 6 12 34 56 78" aria-required="true" />
+                            <ValidationMessage For="() => Input.Telephone" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="mailUser" class="form-label">Adresse mail (Identifiant)</label>
+                            <InputText @bind-Value="Input.Email" class="form-control" autocomplete="username" aria-required="true" id="mailUser" placeholder="shepard@normandy.com" />
+                            <ValidationMessage For="() => Input.Email" class="text-danger" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-3 mt-3">
+                            <label for="mdpUser" class="form-label">Mot de passe</label>
+                            <InputText type="password" @bind-Value="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" id="mdpUser" placeholder="Minimum 6 caractères" />
+                            <ValidationMessage For="() => Input.Password" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="mdpConfirme" class="form-label">Confirmer le mot de passe</label>
+                            <InputText type="password" @bind-Value="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" id="mdpConfirme" />
+                            <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger" />
+                        </div>
+
+                        <div class="col-md-3 mt-3">
+                            <label for="statutUser" class="form-label">Statut</label>
+                            <InputSelect @bind-Value="Input.Statut" class="form-select" id="statutUser" aria-required="true">
+                                <option value="">Choisissez un statut</option>
+                                <option value="Stagiaire">Stagiaire</option>
+                                <option value="Candidat">Candidat</option>
+                                <option value="Intervenant">Intervenant</option>
+                                <option value="Administration">Administration</option>
+                                <option value="Commandant">Commandant (accès complet)</option>
+                            </InputSelect>
+                            <ValidationMessage For="() => Input.Statut" class="text-danger" />
+                        </div>
+                        <div class="col-md-3 mt-3">
+                            <label for="numeroEtudiant" class="form-label">Numéro étudiant (ou matricule)</label>
+                            <InputText @bind-Value="Input.NumeroEtudiant" class="form-control" id="numeroEtudiant" placeholder="N7-xxxx" aria-required="true" />
+                            <ValidationMessage For="() => Input.NumeroEtudiant" class="text-danger" />
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mt-3">
+                            <div class="form-check">
+                                <InputCheckbox @bind-Value="Input.TermsAccepted" class="form-check-input" id="termsCheck" aria-required="true" />
+                                <label class="form-check-label" for="termsCheck">
+                                    J'accepte les <a href="#">termes et conditions</a>.
+                                </label>
+                            </div>
+                            <ValidationMessage For="() => Input.TermsAccepted" class="text-danger" />
+                        </div>
+                        <div class="col-12 mt-3">
+                            <button type="submit" class="btn btnFormInscription btn-primary">Envoyer</button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <img src="./images/MNSLogo.png" alt="Logo MNS" class="img-fluid" style="width: 250px;">
+                    </div>
+
+                    @* Section pour les connexions externes si tu en as besoin, sinon tu peux la commenter ou la supprimer *@
+                    @*
+                    <hr class="mt-4" />
+                    <div class="text-center mt-3">
+                        <h3>Ou s'enregistrer via un protocole externe :</h3>
+                        <ExternalLoginPicker />
+                    </div>
+                    *@
+
+                </EditForm>
+                <div class="text-center mt-4">
+                    <p><a href="/Account/Login">Déjà membre ? Connectez-vous ici.</a></p>
+                </div>
+            </div>
+        </main>
+    </div>
+  
+     <div id="footer">
+        <Footer />
+    </div> 
+</div>
+
+@code {
+    private IEnumerable<IdentityError>? identityErrors;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    // Ce message affiche les erreurs d'Identity (ex: mot de passe trop simple, email déjà utilisé)
+    private string? Message => identityErrors is null ? null : $"Erreur d'inscription: {string.Join(", ", identityErrors.Select(error => error.Description))}";
+
+    public async Task RegisterUser(EditContext editContext)
+    {
+        // Validation personnalisée pour "TermsAccepted"
+        if (!Input.TermsAccepted)
+        {
+            identityErrors = new List<IdentityError> { new IdentityError { Description = "Vous devez accepter les termes et conditions pour vous inscrire." } };
+            return;
+        }
+
+        var user = CreateUser();
+
+        // Mapping des propriétés du InputModel vers l'objet AppUser
+        user.Nom = Input.Nom;
+        user.Prenom = Input.Prenom;
+        user.NumeroRue = Input.NumeroRue;
+        user.NomRue = Input.NomRue;
+        user.Ville = Input.Ville;
+        user.DateNaissance = Input.DateNaissance;
+        user.Telephone = Input.Telephone;
+        user.Statut = Input.Statut; // Assurez-vous que le type correspond à la propriété dans AppUser
+        user.NumeroEtudiant = Input.NumeroEtudiant;
+
+
+        await UserStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
+        var emailStore = GetEmailStore();
+        await emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+        var result = await UserManager.CreateAsync(user, Input.Password);
+
+        if (!result.Succeeded)
+        {
+            identityErrors = result.Errors;
+            return;
+        }
+
+        Logger.LogInformation("Nouvel utilisateur enregistré avec succès.");
+
+        var userId = await UserManager.GetUserIdAsync(user);
+        var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+            NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
+            new Dictionary<string, object?> { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
+
+        // Envoi de l'email de confirmation. Assurez-vous que IEmailSender est correctement configuré.
+        await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+
+        // Assignation des rôles basée sur le statut choisi
+        // Exemple : Si le statut est "Commandant", on lui donne ce rôle
+        if (Input.Statut == "Commandant")
+        {
+            // Vérifie si le rôle "Commandant" existe, si non, tu devras le créer via RoleManager.
+            // Pour simplifier ici, on suppose qu'il existe ou qu'il sera créé ailleurs.
+            await UserManager.AddToRoleAsync(user, "Commandant");
+            Logger.LogInformation("Utilisateur {Email} assigné au rôle 'Commandant'.", user.Email);
+        }
+        else if (Input.Statut != string.Empty) // Pour tout autre statut choisi
+        {
+            // Ici, tu pourrais avoir une logique pour ajouter des rôles spécifiques aux autres statuts
+            // Par exemple, si "Stagiaire" est un rôle, tu l'ajoutes :
+            // await UserManager.AddToRoleAsync(user, Input.Statut);
+            // Ou si tu as une mapping statut -> rôle.
+        }
+
+
+        if (UserManager.Options.SignIn.RequireConfirmedAccount)
+        {
+            RedirectManager.RedirectTo(
+                "Account/RegisterConfirmation",
+                new() { ["email"] = Input.Email, ["returnUrl"] = ReturnUrl });
+        }
+        else
+        {
+            // Si la confirmation de compte n'est pas requise, connecte l'utilisateur directement
+            await SignInManager.SignInAsync(user, isPersistent: false);
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+    }
+
+    private AppUser CreateUser()
+    {
+        try
+        {
+            return Activator.CreateInstance<AppUser>();
+        }
+        catch
+        {
+            throw new InvalidOperationException($"Can't create an instance of '{nameof(AppUser)}'. " +
+                $"Ensure that '{nameof(AppUser)}' is not an abstract class and has a parameterless constructor.");
+        }
+    }
+
+    private IUserEmailStore<AppUser> GetEmailStore()
+    {
+        if (!UserManager.SupportsUserEmail)
+        {
+            throw new NotSupportedException("The default UI requires a user store with email support.");
+        }
+        return (IUserEmailStore<AppUser>)UserStore;
+    }
+
+    private sealed class InputModel
+    {
+        // Champs existants d'Identity
+        [Required(ErrorMessage = "L'adresse email est requise.")]
+        [EmailAddress(ErrorMessage = "Le format de l'adresse email est invalide.")]
+        [Display(Name = "Adresse Email")]
+        public string Email { get; set; } = "";
+
+        [Required(ErrorMessage = "Le mot de passe est requis.")]
+        [StringLength(100, ErrorMessage = "Le {0} doit être au moins {2} et au maximum {1} caractères.", MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Mot de passe")]
+        public string Password { get; set; } = "";
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirmer le mot de passe")]
+        [Compare("Password", ErrorMessage = "Le mot de passe et sa confirmation ne correspondent pas.")]
+        public string ConfirmPassword { get; set; } = "";
+
+        // Nouveaux champs personnalisés (avec validations si besoin)
+        [Required(ErrorMessage = "Le nom est requis.")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Le nom doit avoir entre {2} et {1} caractères.")]
+        public string Nom { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Le prénom est requis.")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Le prénom doit avoir entre {2} et {1} caractères.")]
+        public string Prenom { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Le numéro de rue est requis.")]
+        [StringLength(10, MinimumLength = 1, ErrorMessage = "Le numéro de rue doit avoir entre {2} et {1} caractères.")]
+        public string NumeroRue { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Le nom de rue est requis.")]
+        [StringLength(200, MinimumLength = 2, ErrorMessage = "Le nom de rue doit avoir entre {2} et {1} caractères.")]
+        public string NomRue { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "La ville est requise.")]
+        public string Ville { get; set; } = string.Empty; // Sera une valeur de la liste déroulante
+
+        [Required(ErrorMessage = "La date de naissance est requise.")]
+        [DataType(DataType.Date)]
+        public DateTime DateNaissance { get; set; } = DateTime.MinValue;
+
+        [Required(ErrorMessage = "Le numéro de téléphone est requis.")]
+        [Phone(ErrorMessage = "Le format du numéro de téléphone est invalide.")]
+        public string Telephone { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Le statut est requis.")]
+        public string Statut { get; set; } = string.Empty; // Sera une valeur de la liste déroulante
+
+        [Required(ErrorMessage = "Le numéro étudiant/matricule est requis.")]
+        [StringLength(50, MinimumLength = 1, ErrorMessage = "Le numéro étudiant doit avoir entre {2} et {1} caractères.")]
+        public string NumeroEtudiant { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Vous devez accepter les termes et conditions.")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Vous devez accepter les termes et conditions.")]
+        public bool TermsAccepted { get; set; }
+    }
+}

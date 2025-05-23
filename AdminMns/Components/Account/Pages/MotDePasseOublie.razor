@@ -1,0 +1,76 @@
+﻿@page "/Account/MotDePasseOublie"
+
+@using System.ComponentModel.DataAnnotations
+@using System.Text
+@using System.Text.Encodings.Web
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@using AdminMns.Data 
+@inject UserManager<AppUser> UserManager
+@inject IEmailSender<AppUser> EmailSender
+@inject NavigationManager NavigationManager
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Mot de passe oublié</PageTitle>
+
+<div class="container-fluid d-flex justify-content-center align-items-center g-0 monContainerMdpOublie">
+    <div class="imgPageConnexion">
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <EditForm Model="Input" FormName="forgot-password" OnValidSubmit="OnValidSubmitAsync" method="post" class="insciptionFormu p-5 mt-5">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <h1 class="titreFormu">Réinitialiser le Mot de Passe</h1>
+                <p class="text-center mb-4">Veuillez entrer l'adresse email associée à votre compte. Un lien de réinitialisation vous sera envoyé.</p>
+
+                <div class="mb-3">
+                    <label for="emailInput" class="form-label">Adresse Email</label>
+                    <InputText @bind-Value="Input.Email" class="form-control" autocomplete="email" aria-required="true" id="emailInput" placeholder="commandant@normandy.com" />
+                    <ValidationMessage For="() => Input.Email" class="text-danger" />
+                </div>
+
+                <div class="d-flex mt-4">
+                    <button type="submit" class="btn boutonFormCo m-auto">Envoyer</button>
+                </div>
+
+                <p class="mt-4 text-center"><a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = NavigationManager.Uri }))">Pas encore de compte ? Inscrivez-vous ici</a></p>
+                <p class="mt-2 text-center"><a href="/Account/Login">Retour à la connexion</a></p>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    private async Task OnValidSubmitAsync()
+    {
+        var user = await UserManager.FindByEmailAsync(Input.Email);
+        if (user is null || !(await UserManager.IsEmailConfirmedAsync(user)))
+        {
+            
+            RedirectManager.RedirectTo("Account/ForgotPasswordConfirmation");
+            return; 
+        }
+
+        var code = await UserManager.GeneratePasswordResetTokenAsync(user);
+        code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+        var callbackUrl = NavigationManager.GetUriWithQueryParameters(
+            NavigationManager.ToAbsoluteUri("Account/ResetPassword").AbsoluteUri,
+            new Dictionary<string, object?> { ["code"] = code });
+
+        await EmailSender.SendPasswordResetLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
+
+        RedirectManager.RedirectTo("Account/ForgotPasswordConfirmation");
+    }
+
+    private sealed class InputModel
+    {
+        [Required(ErrorMessage = "L'adresse email est requise.")]
+        [EmailAddress(ErrorMessage = "Le format de l'adresse email est invalide.")]
+        public string Email { get; set; } = "";
+    }
+}

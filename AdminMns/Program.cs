@@ -1,29 +1,42 @@
-using AdminMns.Components;
+ï»¿using AdminMns.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Blazored.LocalStorage;
-using System.Net.Http; // Pour HttpClient
-using System; // Pour Uri
-using AdminMns.Components.Services; // Ajoutez le namespace de votre AuthService si vous l'avez défini
+using AdminMns.Components.Account;
+using AdminMns.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
+                       throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Ajout des services d'authentification
-builder.Services.AddAuthorizationCore(); // Nécessaire pour les fonctionnalités d'autorisation dans Blazor (AuthorizeView)
-builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>(); // Enregistrez votre implémentation personnalisée
-builder.Services.AddBlazoredLocalStorage(); // Enregistre le service pour le stockage local
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
-// Enregistrez votre AuthService pour l'injection de dépendances
-builder.Services.AddScoped<AuthService>();
+    options.UseSqlServer(connectionString));
 
-// Configure HttpClient pour toutes les requêtes, en lui donnant l'URL de base de votre API backend.
-// CustomAuthenticationStateProvider va définir l'en-tête Authorization
-builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["BackendApiUrl"]!) });
-
-
-// Add services to the container. (Ces lignes existaient déjà, assurez-vous qu'elles sont présentes après le code ci-dessus)
+// Add services to the container. (Ces lignes existaient dï¿½jï¿½, assurez-vous qu'elles sont prï¿½sentes aprï¿½s le code ci-dessus)
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IdentityUserAccessor>();
+builder.Services.AddScoped<IdentityRedirectManager>();
+builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = IdentityConstants.ApplicationScheme;
+        options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+    })
+    .AddIdentityCookies();
+
+builder.Services.AddIdentityCore<AppUser>(options => options.SignIn.RequireConfirmedAccount = false)
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddSignInManager()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddSingleton<IEmailSender<AppUser>, IdentityNoOpEmailSender>();
 
 var app = builder.Build(); // Cette ligne doit exister
 
@@ -42,5 +55,7 @@ app.MapStaticAssets();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapAdditionalIdentityEndpoints();
 
 app.Run();
