@@ -4,13 +4,24 @@ using AdminMns.Components.Account;
 using AdminMns.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
                        throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options
+        .UseSqlServer(connectionString)
+        /**
+         * @see https://learn.microsoft.com/en-us/ef/core/modeling/data-seeding#configuration-options-useseeding-and-useasyncseeding-methods
+         * When using this feature, it is recommended to implement both UseSeeding and UseAsyncSeeding methods
+         */
+        .UseSeeding((context, _) => context.GetService<DatabaseSeeder>().Execute(context))
+        .UseAsyncSeeding(async (context, _, cancellationToken) => await context.GetService<DatabaseSeeder>().Execute(context, cancellationToken));
+});
 
 // Add services to the container. (Ces lignes existaient d�j�, assurez-vous qu'elles sont pr�sentes apr�s le code ci-dessus)
 builder.Services.AddRazorComponents()
@@ -35,6 +46,7 @@ builder.Services.AddIdentityCore<AppUser>(options => options.SignIn.RequireConfi
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<AppUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<DatabaseSeeder>();
 
 var app = builder.Build(); // Cette ligne doit exister
 
