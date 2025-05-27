@@ -35,27 +35,14 @@ namespace AdminMns.Data
         public void Execute(DbContext context)
         {
             if (!CheckIfDatabaseExists(context)) return;
-
-            logger.LogInformation("Seeding...");
-
-            Task.WaitAll([
-                SeedRoles(),
-                SeedUsers()
-            ]);
+            Task.WaitAll([SeedDatas()]);
         }
 
         // Version asynchrone pour UseAsyncSeeding
         public async Task Execute(DbContext context, CancellationToken? cancellationToken = null)
         {
             if (!CheckIfDatabaseExists(context)) return;
-
-            logger.LogInformation("Seeding...");
-
-            // TODO: Ajouter des méthodes pour chaque table ou "groupes de datas" selon besoin, et passer le DbContext en paramètre de chaque methode
-            await Task.WhenAll([
-                SeedRoles(),
-                SeedUsers()
-            ]);
+            await SeedDatas();
         }
 
         private bool CheckIfDatabaseExists(DbContext context)
@@ -63,37 +50,38 @@ namespace AdminMns.Data
             return ((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>()).Exists();
         }
 
-        private async Task SeedRoles()
+        private async Task SeedDatas()
         {
-            if (roleManager.Roles.Count() > 0) return;
+            logger.LogInformation("Seeding...");
 
-            logger.LogInformation("Seeding roles...");
-
-            List<IdentityRole> roles = new List<IdentityRole>() {
-                new IdentityRole("Admin"),
-                new IdentityRole("Candidat"),
-                new IdentityRole("Stagiaire"),
-                new IdentityRole("Intervenant"),
-            };
-
-            foreach (IdentityRole role in roles)
+            if (roleManager.Roles.Count() == 0)
             {
-                await roleManager.CreateAsync(role);
+                logger.LogInformation("Seeding roles...");
+
+                List<IdentityRole> roles = new List<IdentityRole>() {
+                    new IdentityRole("Admin"),
+                    new IdentityRole("Candidat"),
+                    new IdentityRole("Stagiaire"),
+                    new IdentityRole("Intervenant"),
+                };
+
+                foreach (IdentityRole role in roles)
+                {
+                    await roleManager.CreateAsync(role);
+                }
+
             }
-        }
 
-        private async Task SeedUsers()
-        {
-            if (userManager.Users.Count() > 0) return;
+            if (userManager.Users.Count() == 0)
+            {
+                logger.LogInformation("Seeding users...");
 
-            logger.LogInformation("Seeding users...");
-
-            // TODO: Avec Rolemanager, il faudrait leur affecter des rôles (ex: Admin, Candidat, Stagiaire, Intervenant)
-            await userManager.CreateAsync(new AppUser { UserName = "MickeyMouse", Email = "mickey.mouse@disney.com" }, "MickeyPass123!");
-            await userManager.CreateAsync(new AppUser { UserName = "MinnieMouse", Email = "minnie.mouse@disney.com" }, "MiniePass123!");
-            await userManager.CreateAsync(new AppUser { UserName = "DonaldDuck", Email = "donald.duck@disney.com" }, "DonaldPass123!");
-            await userManager.CreateAsync(new AppUser { UserName = "ElseArendelle", Email = "elsa.arendelle@disney.com" }, "ElsaPass123!");
-            await userManager.CreateAsync(new AppUser { UserName = "SimbaLion", Email = "simba.lion@disney.com" }, "SimbaPass123!");
+                await userManager.CreateAsync(new AppUser { UserName = "MickeyMouse", Email = "mickey.mouse@disney.com" }, "MickeyPass123!");
+                await userManager.CreateAsync(new AppUser { UserName = "MinnieMouse", Email = "minnie.mouse@disney.com" }, "MiniePass123!");
+                await userManager.CreateAsync(new AppUser { UserName = "DonaldDuck", Email = "donald.duck@disney.com" }, "DonaldPass123!");
+                await userManager.CreateAsync(new AppUser { UserName = "ElseArendelle", Email = "elsa.arendelle@disney.com" }, "ElsaPass123!");
+                await userManager.CreateAsync(new AppUser { UserName = "SimbaLion", Email = "simba.lion@disney.com" }, "SimbaPass123!");
+            }
         }
     }
 }

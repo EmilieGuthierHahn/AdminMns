@@ -20,7 +20,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
          * When using this feature, it is recommended to implement both UseSeeding and UseAsyncSeeding methods
          */
         .UseSeeding((context, _) => context.GetService<DatabaseSeeder>().Execute(context))
-        .UseAsyncSeeding(async (context, _, cancellationToken) => await context.GetService<DatabaseSeeder>().Execute(context, cancellationToken));
+        .UseAsyncSeeding(async (context, _, cancellationToken) => await context.GetService<DatabaseSeeder>().Execute(context, cancellationToken))
+        ;
 });
 
 // Add services to the container. (Ces lignes existaient d�j�, assurez-vous qu'elles sont pr�sentes apr�s le code ci-dessus)

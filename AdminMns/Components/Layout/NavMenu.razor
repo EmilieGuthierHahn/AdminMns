@@ -66,10 +66,19 @@
                                 <i class="bi bi-gear me-2"></i>Admin
                             </NavLink>
                         </li>
-                        <li class="nav-item mt-auto mb-3 text-center menu-item logout">
+                     @*    <li class="nav-item mt-auto mb-3 text-center menu-item logout">
                             <NavLink class="nav-link bg-gris rounded" href="/Connexion">
                                 <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
                             </NavLink>
+                        </li> *@
+                        <li class="nav-item mt-auto mb-3 text-center menu-item logout">
+                            <form action="Account/Logout" method="post">
+                                <AntiforgeryToken />
+                                <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                                <button type="submit" class="nav-link bg-gris rounded">
+                                    <i class="bi bi-box-arrow-left me-2"></i>Déconnexion
+                                </button>
+                            </form>
                         </li>
                         <div class="nav-item px-3">
                             <NavLink class="nav-link" href="Account/Manage">
