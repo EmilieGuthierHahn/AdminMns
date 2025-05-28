@@ -1,5 +1,4 @@
-﻿/* _-_-_-_-_-_- _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    _-_-_-_-_-_-    */
-/* DECLARER UNE ABSENCE---------------------------------------------------------------------------- */
+﻿
 .containerGlobalDeclarerAbsence {
     display: flex;
     flex-direction: column;
@@ -11,12 +10,12 @@
     position: relative;
     overflow: hidden;
     height: auto;
-    flex-grow: 1; /* Permet à la section de s'étirer */
+    flex-grow: 1; 
 }
 
 .containerGlobalDeclarerAbsence::before {
     content: "";
-    /* Obligatoire pour que le pseudo-élément soit visible */
+ 
     position: absolute;
     top: 0;
     left: 0;
@@ -26,9 +25,9 @@
     background-size: cover;
     background-position: center;
     opacity: 0.5;
-    /* Ajuste l'opacité selon tes besoins */
+  
     z-index: -1;
-    /* Place l'image derrière le contenu */
+  
 }
 
 .titreAbsence {

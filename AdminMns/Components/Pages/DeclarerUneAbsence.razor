@@ -1,7 +1,16 @@
-﻿
-@page "/DeclarerUneAbsence"
+﻿@page "/DeclarerUneAbsence"
+@rendermode RenderMode.InteractiveServer
 
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.EntityFrameworkCore
+@using System.IO
+@using AdminMns.Data
+@using AdminMns.Models
+@inject ApplicationDbContext DbContext
+@inject ILogger<DeclarerUneAbsence> Logger
+@inject NavigationManager NavigationManager
 
 <div class="containerGlobalDeclarerAbsence">
 	<div class="container-fluid contDeclarerAbsence">
@@ -14,55 +23,86 @@
 			</div>
 		</div>
 
-
 		<div class="row">
-			
-
 			<main class="containerDeclarerAbsence">
+
 				<h1 class="titreAbsence">Déclarer une absence</h1>
-				<EditForm Model="Model" OnInvalidSubmit="DeclarerAbsence" FormName="DeclarerAbsenceForm" method="post">
+
+				@if (!string.IsNullOrEmpty(successMessage))
+				{
+					<div class="alert alert-success" role="alert">
+						@successMessage
+					</div>
+				}
+				@if (!string.IsNullOrEmpty(errorMessageForDisplay))
+				{
+					<div class="alert alert-danger" role="alert">
+						@errorMessageForDisplay
+					</div>
+				}
+
+				<EditForm Model="Model" OnSubmit="DeclarerAbsence" FormName="DeclarerAbsenceForm">
 					<DataAnnotationsValidator />
-					<ValidationSummary class="text-danger" role="alert" />
-					
-					<InputSelect @bind-Value="Model.RaisonAbsence" class="form-select" id="raisonAbsence" aria-required="true">
-						<option selected>Raison de l'absence</option>
-						<option value="1">Maladie</option>
-						<option value="2">Rendez-vous</option>
-						<option value="3">Transport</option>
-						<option value="3">Autre</option>
-					</InputSelect>
+					<ValidationSummary class="text-danger d-none" />
+
+					<div class="mb-3">
+						<label for="raisonAbsence" class="form-label">Raison de l'absence</label>
+						<InputSelect @bind-Value="Model.RaisonAbsence" class="form-select" id="raisonAbsence">
+							<option value="">-- Choisissez une raison --</option>
+							<option value="1">Maladie</option>
+							<option value="2">Rendez-vous</option>
+							<option value="3">Transport</option>
+							<option value="4">Autre</option>
+						</InputSelect>
+						<ValidationMessage For="@(() => Model.RaisonAbsence)" class="text-danger" />
+					</div>
 
 					<div class="mb-3">
 						<label for="exampleFormControlTextarea1" class="form-label">Expliquez plus en détail</label>
 						<InputTextArea @bind-Value="Model.TextAreaAbsence" class="form-control" id="exampleFormControlTextarea1" rows="3"></InputTextArea>
 					</div>
+
 					<div class="date-picker mb-3">
 						<label for="start-date">Date de début :</label>
-						<InputDate @bind-Value="Model.DateDebutAbsence" id="start-date" class="form-control" aria-required="true" />
+						<InputDate @bind-Value="Model.DateDebutAbsence" id="start-date" class="form-control" />
 						<ValidationMessage For="@(() => Model.DateDebutAbsence)" class="text-danger" />
 
 						<label for="end-date">Date de fin :</label>
-						<InputDate @bind-Value="Model.DateFinAbsence" id="end-date" name="end-date" class="form-control" aria-required="true" />
+						<InputDate @bind-Value="Model.DateFinAbsence" id="end-date" class="form-control" />
 						<ValidationMessage For="@(() => Model.DateFinAbsence)" class="text-danger" />
 					</div>
 
 					<div class="mb-3">
-						<label for="formFile" class="form-label">Envoyez votre justificatif</label>
-						<InputFile id="formFile" @bind-Value="Model.JustificatifAbsence" class="form-control" aria-required="true" />
-						<ValidationMessage For="@(() => Model.JustificatifAbsence)" class="text-danger" />
+						<label for="formFile" class="form-label">Envoyez votre justificatif (PDF uniquement, max 75Mo, obligatoire)</label>
+						<InputFile id="formFile" OnChange="HandleFileSelected" class="form-control" />
+						@if (isFileErrorActive)
+						{
+							<div class="text-danger validation-message field-validation-error">@fileErrorMessage</div>
+						}
+						@if (Model.JustificatifFile != null && !isFileErrorActive)
+						{
+							<p class="mt-2 text-info">Fichier sélectionné : @Model.JustificatifFile.Name</p>
+						}
 					</div>
 					<div class="d-flex mb-3">
-						<button type="submit" class="btn boutonDeclaration m-auto">Envoyer</button>
+						<button type="submit" class="btn boutonDeclaration m-auto" disabled="@isSubmitting">
+							@if (isSubmitting)
+							{
+								<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+								<text> Envoi en cours...</text>
+							}
+							else
+							{
+								<text>Envoyer</text>
+							}
+						</button>
 					</div>
 				</EditForm>
-
-
 			</main>
 		</div>
-
 	</div>
 	<div id="footer">
-		<Footer />
+		@* <Footer /> *@
 	</div>
 </div>
 
@@ -70,36 +110,188 @@
 	[SupplyParameterFromForm]
 	private AbsenceFormModel Model { get; set; } = new();
 
+	private bool isSubmitting;
+	private string? successMessage;
+	private string? errorMessageForDisplay;
+	private string? fileErrorMessage;
+	private bool isFileErrorActive;
+
+	private const long MAX_FILE_SIZE = 75 * 1024 * 1024; // 75 MB
+
+	private void HandleFileSelected(InputFileChangeEventArgs e)
+	{
+		Logger.LogInformation("[BlazorAppLog] HandleFileSelected déclenché. Nombre de fichiers dans l'événement: {FileCount}", e.FileCount);
+		Model.JustificatifFile = null;
+		fileErrorMessage = null;
+		isFileErrorActive = false;
+
+		if (errorMessageForDisplay == "Merci de fournir un justificatif valable (PDF requis)." ||
+		 (errorMessageForDisplay != null && (errorMessageForDisplay.StartsWith("Le fichier doit être") || errorMessageForDisplay.StartsWith("Le fichier PDF sélectionné est vide") || errorMessageForDisplay.Contains("trop volumineux"))))
+		{
+			errorMessageForDisplay = null;
+		}
+
+		var file = e.GetMultipleFiles(1).FirstOrDefault();
+
+		if (file != null)
+		{
+			Logger.LogInformation("[BlazorAppLog] Fichier reçu par HandleFileSelected: Nom='{FileName}', Taille={FileSize}, TypeMIME='{FileContentType}'", file.Name, file.Size, file.ContentType);
+			if (file.ContentType != "application/pdf" && !file.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+			{
+				fileErrorMessage = "Le fichier doit être au format PDF.";
+				isFileErrorActive = true;
+				Logger.LogWarning("[BlazorAppLog] Validation échouée: Le fichier n'est pas un PDF. Type détecté: {ContentType}", file.ContentType);
+			}
+			else if (file.Size == 0)
+			{
+				fileErrorMessage = "Le fichier PDF sélectionné est vide et ne peut pas être utilisé.";
+				isFileErrorActive = true;
+				Logger.LogWarning("[BlazorAppLog] Validation échouée: Fichier PDF vide. Taille: {FileSize}", file.Size);
+			}
+			else if (file.Size > MAX_FILE_SIZE)
+			{
+				fileErrorMessage = $"Le fichier PDF '{file.Name}' est trop volumineux ({file.Size / (1024.0 * 1024.0):F1} Mo). Maximum: {MAX_FILE_SIZE / (1024 * 1024)} Mo.";
+				isFileErrorActive = true;
+				Logger.LogWarning("[BlazorAppLog] Validation échouée: Fichier PDF trop volumineux. Taille: {FileSize}", file.Size);
+			}
+			else
+			{
+				Model.JustificatifFile = file;
+				Logger.LogInformation("[BlazorAppLog] Fichier PDF '{FileName}' assigné à Model.JustificatifFile.", Model.JustificatifFile.Name);
+			}
+		}
+		else
+		{
+			Logger.LogWarning("[BlazorAppLog] HandleFileSelected: Aucun fichier reçu de InputFileChangeEventArgs (e.GetMultipleFiles().FirstOrDefault() est null).");
+		}
+		StateHasChanged();
+	}
+
 	public async Task DeclarerAbsence(EditContext editContext)
 	{
-		// if (dbContex.RaisonsAbsence == null)
-		// {
-		// 	_logger.LogError("Le DbSet RaisonsAbsence est null.");
-		// 	return Problem("Configuration de base de données incomplète.");
-		// }
+		Logger.LogInformation("[BlazorAppLog] Début de DeclarerAbsence. Model.JustificatifFile est {StatusFichierAvantValidation}. fileErrorMessage: '{MsgErreurFichier}'", Model.JustificatifFile == null ? "NULL" : "assigné (" + Model.JustificatifFile.Name + ")", fileErrorMessage);
+		isSubmitting = true;
+		successMessage = null;
+		errorMessageForDisplay = null;
+		isFileErrorActive = false;
 
-		// if (!ModelState.IsValid)
-		// {
-		// 	return BadRequest(ModelState);
-		// }
+		StateHasChanged();
 
-		// _context.RaisonsAbsence.Add(raisonAbsence);
-		// try
-		// {
-		// 	await _context.SaveChangesAsync();
-		// }
-		// catch (DbUpdateException ex)
-		// {
-		// 	_logger.LogError(ex, "Erreur DbUpdateException lors de la création de la raison d'absence.");
-		// 	return StatusCode(500, "Erreur de sauvegarde en base de données.");
-		// }
-		// catch (Exception ex)
-		// {
-		// 	_logger.LogError(ex, "Erreur générale lors de la création de la raison d'absence.");
-		// 	return StatusCode(500, "Erreur interne du serveur.");
-		// }
+		if (!string.IsNullOrEmpty(fileErrorMessage))
+		{
+			errorMessageForDisplay = fileErrorMessage;
+			isFileErrorActive = true;
+			Logger.LogWarning("[BlazorAppLog] Erreur fichier de HandleFileSelected propagée: {ErrorMsg}", fileErrorMessage);
+			isSubmitting = false;
+			StateHasChanged();
+			return;
+		}
 
-		// return CreatedAtAction(nameof(GetRaisonAbsence), new { id = raisonAbsence.IdRaisonAbsence }, raisonAbsence);
+		bool modelDataAnnotationsValid = editContext.Validate();
+		if (!modelDataAnnotationsValid)
+		{
+			Logger.LogWarning("[BlazorAppLog] Le modèle n'est pas valide (DataAnnotations).");
+			errorMessageForDisplay = "Le formulaire contient des erreurs. Veuillez corriger les champs indiqués.";
+			isSubmitting = false;
+			StateHasChanged();
+			return;
+		}
+
+		if (Model.DateDebutAbsence.HasValue && Model.DateFinAbsence.HasValue && Model.DateFinAbsence < Model.DateDebutAbsence)
+		{
+			Logger.LogWarning("[BlazorAppLog] Validation personnalisée échouée : la date de fin est antérieure à la date de début.");
+			errorMessageForDisplay = "La date de fin ne peut pas être antérieure à la date de début.";
+			isSubmitting = false;
+			StateHasChanged();
+			return;
+		}
+
+		if (Model.JustificatifFile == null)
+		{
+			Logger.LogWarning("[BlazorAppLog] Aucun fichier justificatif présent dans Model.JustificatifFile (obligatoire). fileErrorMessage était: '{InitialFileError}'", fileErrorMessage);
+			fileErrorMessage = "Merci de fournir un justificatif valable (PDF requis).";
+			errorMessageForDisplay = fileErrorMessage;
+			isFileErrorActive = true;
+			isSubmitting = false;
+			StateHasChanged();
+			return;
+		}
+
+		Logger.LogInformation("[BlazorAppLog] Toutes les validations initiales passées. Fichier présent: {FileName}", Model.JustificatifFile.Name);
+
+		int idRaisonAbsenceInt;
+		if (!int.TryParse(Model.RaisonAbsence, out idRaisonAbsenceInt))
+		{
+			errorMessageForDisplay = "La raison de l'absence est invalide.";
+			isSubmitting = false; StateHasChanged(); return;
+		}
+
+		string? nomFichierSauvegarde = null;
+		try
+		{
+			var nomFichierOriginal = Path.GetFileName(Model.JustificatifFile!.Name);
+			var extensionFichier = Path.GetExtension(nomFichierOriginal);
+			nomFichierSauvegarde = $"{Guid.NewGuid()}{extensionFichier}";
+
+			var dossierDeSauvegarde = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "justificatifs_absences");
+			if (!Directory.Exists(dossierDeSauvegarde)) Directory.CreateDirectory(dossierDeSauvegarde);
+			var cheminCompletFichier = Path.Combine(dossierDeSauvegarde, nomFichierSauvegarde);
+
+			await using var stream = new FileStream(cheminCompletFichier, FileMode.Create);
+			await Model.JustificatifFile.OpenReadStream(MAX_FILE_SIZE).CopyToAsync(stream);
+			Logger.LogInformation("[BlazorAppLog] Fichier '{OriginalName}' sauvegardé: {SavedName}", nomFichierOriginal, nomFichierSauvegarde);
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "[BlazorAppLog] Erreur sauvegarde fichier.");
+			errorMessageForDisplay = $"Erreur traitement fichier: {ex.Message}";
+			isSubmitting = false; StateHasChanged(); return;
+		}
+
+		var nouvelleAbsence = new Absence
+		{
+			IdRaisonAbsence = idRaisonAbsenceInt,
+			DateDebut = Model.DateDebutAbsence.GetValueOrDefault(),
+			DateFin = Model.DateFinAbsence.GetValueOrDefault(),
+			DateDeclaration = DateTime.UtcNow,
+			Justificatif = nomFichierSauvegarde,
+			IdStagiaire = 0, // !! ATTENTION CRITIQUE : REMPLACEZ CECI par la vraie logique pour obtenir IdStagiaire !!
+		};
+
+		try
+		{
+			if (DbContext.Absences == null)
+			{
+				Logger.LogError("[BlazorAppLog] Le DbSet Absences est null.");
+				errorMessageForDisplay = "Erreur de configuration de la base de données.";
+				isSubmitting = false; StateHasChanged(); return;
+			}
+			DbContext.Absences.Add(nouvelleAbsence);
+			await DbContext.SaveChangesAsync();
+
+			Logger.LogInformation("[BlazorAppLog] Absence (ID: {AbsenceId}) sauvegardée.", nouvelleAbsence.IdAbsence);
+			successMessage = "Votre déclaration d'absence a été enregistrée !";
+			Model = new AbsenceFormModel();
+			fileErrorMessage = null;
+			isFileErrorActive = false;
+			errorMessageForDisplay = null;
+			StateHasChanged();
+		}
+		catch (DbUpdateException dbEx)
+		{
+			Logger.LogError(dbEx, "[BlazorAppLog] Erreur DbUpdateException: {InnerEx}", dbEx.InnerException?.Message);
+			errorMessageForDisplay = $"Erreur BDD: {dbEx.InnerException?.Message ?? dbEx.Message}. Vérifiez IdStagiaire.";
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(ex, "[BlazorAppLog] Erreur générale sauvegarde.");
+			errorMessageForDisplay = $"Erreur générale: {ex.Message}";
+		}
+		finally
+		{
+			isSubmitting = false;
+			StateHasChanged();
+		}
 	}
 
 	private sealed class AbsenceFormModel
@@ -110,12 +302,11 @@
 		public string TextAreaAbsence { get; set; } = string.Empty;
 
 		[Required(ErrorMessage = "Merci d'entrer une date de début")]
-		public DateTime? DateDebutAbsence { get; set; }
+		public DateTime? DateDebutAbsence { get; set; } = DateTime.Today;
 
 		[Required(ErrorMessage = "Merci d'entrer une date de fin")]
-		public DateTime? DateFinAbsence { get; set; }
+		public DateTime? DateFinAbsence { get; set; } = DateTime.Today;
 
-		[Required(ErrorMessage="Merci de fournir un justificatif valable")]
-		public string JustificatifAbsence { get; set; }
+		public IBrowserFile? JustificatifFile { get; set; }
 	}
 }
