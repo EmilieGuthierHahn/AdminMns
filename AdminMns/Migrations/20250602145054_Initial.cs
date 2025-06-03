@@ -12,24 +12,6 @@ namespace AdminMns.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Absences",
-                columns: table => new
-                {
-                    IdAbsence = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DateFin = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Justificatif = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    DateDebut = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DateDeclaration = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IdStagiaire = table.Column<int>(type: "int", nullable: false),
-                    IdRaisonAbsence = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Absences", x => x.IdAbsence);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
                 {
@@ -79,162 +61,23 @@ namespace AdminMns.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "candidatures",
+                name: "Stagiaires",
                 columns: table => new
                 {
-                    IdCandidature = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    TitreOuReference = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    DateSoumission = table.Column<DateTime>(type: "datetime2", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_candidatures", x => x.IdCandidature);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ClasseStagiaires",
-                columns: table => new
-                {
-                    IdStagiaire = table.Column<int>(type: "int", nullable: false),
-                    IdClasse = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ClasseStagiaires", x => new { x.IdStagiaire, x.IdClasse });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "CoursIntervenants",
-                columns: table => new
-                {
-                    IdPlanning = table.Column<int>(type: "int", nullable: false),
-                    IdIntervenant = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_CoursIntervenants", x => new { x.IdPlanning, x.IdIntervenant });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Documents",
-                columns: table => new
-                {
-                    IdDocument = table.Column<int>(type: "int", nullable: false)
+                    IdStagiaire = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Nom = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    IdTypeDoc = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    IdCandidature = table.Column<int>(type: "int", nullable: false)
+                    Prenom = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DateNaissance = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EmailStagiaire = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Telephone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Adresse = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Ville = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    UtilisateurId = table.Column<string>(type: "nvarchar(max)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Documents", x => x.IdDocument);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Entretiens",
-                columns: table => new
-                {
-                    IdUtilisateur = table.Column<int>(type: "int", nullable: false),
-                    IdRendezVous = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Entretiens", x => new { x.IdUtilisateur, x.IdRendezVous });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Photos",
-                columns: table => new
-                {
-                    IdPhoto = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    IdClasse = table.Column<int>(type: "int", nullable: false),
-                    IdStagiaire = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Photos", x => x.IdPhoto);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "PlanningClasses",
-                columns: table => new
-                {
-                    IdPlanning = table.Column<int>(type: "int", nullable: false),
-                    IdClasse = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_PlanningClasses", x => new { x.IdPlanning, x.IdClasse });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "plannings",
-                columns: table => new
-                {
-                    IdPlanning = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Jour = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Heure = table.Column<TimeSpan>(type: "time", nullable: false),
-                    Salle = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_plannings", x => x.IdPlanning);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "raisons_absence",
-                columns: table => new
-                {
-                    IdRaisonAbsence = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Motif = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_raisons_absence", x => x.IdRaisonAbsence);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "raisons_retard",
-                columns: table => new
-                {
-                    IdRaisonRetard = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Motif = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_raisons_retard", x => x.IdRaisonRetard);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "RendezVous",
-                columns: table => new
-                {
-                    IdRendezVous = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    JourRdv = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    HeureRdv = table.Column<TimeSpan>(type: "time", nullable: false),
-                    Sujet = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_RendezVous", x => x.IdRendezVous);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "status",
-                columns: table => new
-                {
-                    IdStatus = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_status", x => x.IdStatus);
+                    table.PrimaryKey("PK_Stagiaires", x => x.IdStagiaire);
                 });
 
             migrationBuilder.CreateTable(
@@ -383,27 +226,20 @@ namespace AdminMns.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Intervenants",
+                name: "Candidatures",
                 columns: table => new
                 {
-                    IdIntervenant = table.Column<int>(type: "int", nullable: false)
+                    IdCandidature = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nom = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Prenom = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Specialite = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    Telephone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Adresse = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
-                    Ville = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    DateDeNaissance = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DateDeCreation = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    TitreOuReference = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    DateSoumission = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UtilisateurId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Intervenants", x => x.IdIntervenant);
+                    table.PrimaryKey("PK_Candidatures", x => x.IdCandidature);
                     table.ForeignKey(
-                        name: "FK_Intervenants_AspNetUsers_UtilisateurId",
+                        name: "FK_Candidatures_AspNetUsers_UtilisateurId",
                         column: x => x.UtilisateurId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -411,33 +247,54 @@ namespace AdminMns.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "stagiaire",
+                name: "Absences",
                 columns: table => new
                 {
+                    IdAbsence = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DateDebut = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DateFin = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Justificatif = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Motif = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DateDeclaration = table.Column<DateTime>(type: "datetime2", nullable: false),
                     IdStagiaire = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Nom = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Prenom = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    DateNaissance = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EmailStagiaire = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Telephone = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Adresse = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Ville = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    UtilisateurId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_stagiaire", x => x.IdStagiaire);
+                    table.PrimaryKey("PK_Absences", x => x.IdAbsence);
                     table.ForeignKey(
-                        name: "FK_stagiaire_AspNetUsers_UtilisateurId",
-                        column: x => x.UtilisateurId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
+                        name: "FK_Absences_Stagiaires_IdStagiaire",
+                        column: x => x.IdStagiaire,
+                        principalTable: "Stagiaires",
+                        principalColumn: "IdStagiaire",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "classes",
+                name: "Retards",
+                columns: table => new
+                {
+                    IdRetard = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DateArrivee = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Justificatif = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Motif = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Details = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: false),
+                    IdStagiaire = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Retards", x => x.IdRetard);
+                    table.ForeignKey(
+                        name: "FK_Retards_Stagiaires_IdStagiaire",
+                        column: x => x.IdStagiaire,
+                        principalTable: "Stagiaires",
+                        principalColumn: "IdStagiaire",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Classes",
                 columns: table => new
                 {
                     IdClasse = table.Column<int>(type: "int", nullable: false)
@@ -448,59 +305,49 @@ namespace AdminMns.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_classes", x => x.IdClasse);
+                    table.PrimaryKey("PK_Classes", x => x.IdClasse);
                     table.ForeignKey(
-                        name: "FK_classes_candidatures_IdCandidature",
+                        name: "FK_Classes_Candidatures_IdCandidature",
                         column: x => x.IdCandidature,
-                        principalTable: "candidatures",
+                        principalTable: "Candidatures",
                         principalColumn: "IdCandidature",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "retards",
+                name: "Documents",
                 columns: table => new
                 {
-                    IdRetard = table.Column<int>(type: "int", nullable: false)
+                    IdDocument = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    DateArrivee = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Justificatif = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IdRaisonRetard = table.Column<int>(type: "int", nullable: false)
+                    NomDocument = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    TypeDossier = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Statut = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    StatutAffichage = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    IdTypeDoc = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    IdCandidature = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_retards", x => x.IdRetard);
+                    table.PrimaryKey("PK_Documents", x => x.IdDocument);
                     table.ForeignKey(
-                        name: "FK_retards_raisons_retard_IdRaisonRetard",
-                        column: x => x.IdRaisonRetard,
-                        principalTable: "raisons_retard",
-                        principalColumn: "IdRaisonRetard",
+                        name: "FK_Documents_Candidatures_IdCandidature",
+                        column: x => x.IdCandidature,
+                        principalTable: "Candidatures",
+                        principalColumn: "IdCandidature",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Documents_TypeDocs_IdTypeDoc",
+                        column: x => x.IdTypeDoc,
+                        principalTable: "TypeDocs",
+                        principalColumn: "IdTypeDoc",
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "retard_stagiaire",
-                columns: table => new
-                {
-                    IdRetard = table.Column<int>(type: "int", nullable: false),
-                    IdStagiaire = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_retard_stagiaire", x => new { x.IdRetard, x.IdStagiaire });
-                    table.ForeignKey(
-                        name: "FK_retard_stagiaire_retards_IdRetard",
-                        column: x => x.IdRetard,
-                        principalTable: "retards",
-                        principalColumn: "IdRetard",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_retard_stagiaire_stagiaire_IdStagiaire",
-                        column: x => x.IdStagiaire,
-                        principalTable: "stagiaire",
-                        principalColumn: "IdStagiaire",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_Absences_IdStagiaire",
+                table: "Absences",
+                column: "IdStagiaire");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Administrateurs_UtilisateurId",
@@ -547,29 +394,29 @@ namespace AdminMns.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_classes_IdCandidature",
-                table: "classes",
+                name: "IX_Candidatures_UtilisateurId",
+                table: "Candidatures",
+                column: "UtilisateurId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Classes_IdCandidature",
+                table: "Classes",
                 column: "IdCandidature");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Intervenants_UtilisateurId",
-                table: "Intervenants",
-                column: "UtilisateurId");
+                name: "IX_Documents_IdCandidature",
+                table: "Documents",
+                column: "IdCandidature");
 
             migrationBuilder.CreateIndex(
-                name: "IX_retard_stagiaire_IdStagiaire",
-                table: "retard_stagiaire",
+                name: "IX_Documents_IdTypeDoc",
+                table: "Documents",
+                column: "IdTypeDoc");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Retards_IdStagiaire",
+                table: "Retards",
                 column: "IdStagiaire");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_retards_IdRaisonRetard",
-                table: "retards",
-                column: "IdRaisonRetard");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_stagiaire_UtilisateurId",
-                table: "stagiaire",
-                column: "UtilisateurId");
         }
 
         /// <inheritdoc />
@@ -597,61 +444,25 @@ namespace AdminMns.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "classes");
-
-            migrationBuilder.DropTable(
-                name: "ClasseStagiaires");
-
-            migrationBuilder.DropTable(
-                name: "CoursIntervenants");
+                name: "Classes");
 
             migrationBuilder.DropTable(
                 name: "Documents");
 
             migrationBuilder.DropTable(
-                name: "Entretiens");
-
-            migrationBuilder.DropTable(
-                name: "Intervenants");
-
-            migrationBuilder.DropTable(
-                name: "Photos");
-
-            migrationBuilder.DropTable(
-                name: "PlanningClasses");
-
-            migrationBuilder.DropTable(
-                name: "plannings");
-
-            migrationBuilder.DropTable(
-                name: "raisons_absence");
-
-            migrationBuilder.DropTable(
-                name: "RendezVous");
-
-            migrationBuilder.DropTable(
-                name: "retard_stagiaire");
-
-            migrationBuilder.DropTable(
-                name: "status");
-
-            migrationBuilder.DropTable(
-                name: "TypeDocs");
+                name: "Retards");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "candidatures");
+                name: "Candidatures");
 
             migrationBuilder.DropTable(
-                name: "retards");
+                name: "TypeDocs");
 
             migrationBuilder.DropTable(
-                name: "stagiaire");
-
-            migrationBuilder.DropTable(
-                name: "raisons_retard");
+                name: "Stagiaires");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");

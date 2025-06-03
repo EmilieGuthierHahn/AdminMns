@@ -1,9 +1,20 @@
 ﻿@page "/DeclarerUnRetard"
+@rendermode RenderMode.InteractiveServer
 
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.EntityFrameworkCore
+@using System.IO
+@using AdminMns.Data
+@using AdminMns.Models
+@inject ApplicationDbContext DbContext
+@inject ILogger<DeclarerUnRetard> Logger
+@inject NavigationManager NavigationManager
+@* @inject IUserService UserService // Exemple pour obtenir l'ID utilisateur *@
 
-  <div class="containerGlobalDeclarerRetard">
-        <div class="contDeclarerRetard">
-                <div class="containerNotifications">
+<div class="containerGlobalDeclarerRetard">
+    <div class="contDeclarerRetard">
+        <div class="containerNotifications">
             <div class="notification">
                 <i class="bi bi-bell"></i>
             </div>
@@ -12,37 +23,278 @@
             </div>
         </div>
 
+        <main class="containerDeclarerRetard">
+            <h1 class="titreRetard">Déclarer un retard</h1>
 
+            @if (isLoadingReasons)
+            {
+                <p><em>Chargement des raisons des retards...</em></p>
+            }
+            else if (raisonsRetard == null || !raisonsRetard.Any())
+            {
+                <div class="alert alert-warning" role="alert">
+                    Impossible de charger les raisons des retards. Le formulaire ne peut pas être affiché. Veuillez contacter un administrateur.
+                </div>
+            }
+            else
+            {
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success" role="alert">
+                        @successMessage
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(errorMessageForDisplay))
+                {
+                    <div class="alert alert-danger" role="alert">
+                        @errorMessageForDisplay
+                    </div>
+                }
 
-	<main class="containerDeclarerRetard">
-		<h1 class="titreRetard">Déclarer un retard</h1>
+                <EditForm Model="Model" OnValidSubmit="HandleRetardSubmitAsync" FormName="DeclarerRetardForm">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary class="text-danger d-none" />
 
-		<select class="form-select" aria-label="Default select example">
-			<option selected>Raison du retard</option>
-			<option value="1">Transport</option>
-			<option value="2">Panne de reveil</option>
-			<option value="3">Autre</option>
-		</select>
-		<div class="mb-3">
-			<label for="exampleFormControlTextarea1" class="form-label">Expliquez plus en détail</label>
-			<textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-		</div>
-		<div class="mb-3">
-			<label for="formFile" class="form-label">Envoyez votre justificatif</label>
-			<input class="form-control" type="file" id="formFile">
-		</div>
-		<div class="d-flex mb-3">
-			<button type="submit" class="btn boutonDeclaration m-auto">Envoyer</button>
-		</div>
+                    <div class="mb-3">
+                        <label for="idRaisonRetard" class="form-label">Raison du retard</label>
+                        <InputSelect @bind-Value="Model.IdRaisonRetard" class="form-select" id="idRaisonRetard">
+                            <option value="0">-- Choisissez une raison --</option>
+                            @if (raisonsRetard != null)
+                            {
+                                @foreach (var raison in raisonsRetard)
+                                {
+                                    <option value="@raison.IdRaisonRetard">@raison.Libelle</option>
+                                }
+                            }
+                        </InputSelect>
+                        <ValidationMessage For="@(() => Model.IdRaisonRetard)" class="text-danger" />
+                    </div>
 
+                    @* Ajout du champ "Expliquez plus en détail" basé sur votre maquette *@
+                    <div class="mb-3">
+                        <label for="detailsRetard" class="form-label">Expliquez plus en détail (optionnel)</label>
+                        <InputTextArea @bind-Value="Model.DetailsRetard" class="form-control" id="detailsRetard" rows="3"></InputTextArea>
+                        <ValidationMessage For="@(() => Model.DetailsRetard)" class="text-danger" />
+                    </div>
 
-	</main>
-	
+                    <div class="mb-3">
+                        <label for="dateArrivee" class="form-label">Date et heure d'arrivée estimée</label>
+                        <InputDate Type="InputDateType.DateTimeLocal" @bind-Value="Model.DateArrivee" id="dateArrivee" class="form-control" />
+                        <ValidationMessage For="@(() => Model.DateArrivee)" class="text-danger" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="formFileRetard" class="form-label">Envoyez votre justificatif (PDF uniquement, max 75Mo, optionnel)</label>
+                        <InputFile id="formFileRetard" OnChange="HandleFileSelectedRetard" class="form-control" />
+                        @if (isFileErrorActive)
+                        {
+                            <div class="text-danger validation-message field-validation-error">@fileErrorMessage</div>
+                        }
+                        @if (Model.JustificatifFile != null && !isFileErrorActive)
+                        {
+                            <p class="mt-2 text-info">Fichier sélectionné : @Model.JustificatifFile.Name</p>
+                        }
+                    </div>
+
+                    <div class="d-flex mb-3">
+                        <button type="submit" class="btn boutonDeclaration m-auto" disabled="@isSubmitting">
+                            @if (isSubmitting)
+                            {
+                                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                <text> Envoi en cours...</text>
+                            }
+                            else
+                            {
+                                <text>Envoyer la déclaration</text>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            }
+        </main>
+    </div>
+    <div id="footer">
+        <Footer /> @* Assurez-vous que le composant Footer existe et est accessible *@
+    </div>
 </div>
-	<div id="footer">
-		<Footer />
-	</div>
-</div>
+
+@code {
+    // Modèle de formulaire imbriqué
+    private sealed class RetardFormModel
+    {
+        [Required(ErrorMessage = "La raison du retard est requise.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Veuillez sélectionner une raison valide.")]
+        public int IdRaisonRetard { get; set; }
+
+        // Ajout du champ DetailsRetard pour correspondre à votre maquette
+        [MaxLength(500, ErrorMessage = "Les détails ne peuvent pas dépasser 500 caractères.")]
+        public string? DetailsRetard { get; set; }
+
+        [Required(ErrorMessage = "Merci d'entrer une date et heure d'arrivée.")]
+        public DateTime? DateArrivee { get; set; } = DateTime.Now;
+
+        public IBrowserFile? JustificatifFile { get; set; }
+    }
+
+    [SupplyParameterFromForm]
+    private RetardFormModel Model { get; set; } = new();
+
+    private List<RaisonRetard>? raisonsRetard;
+    private bool isLoadingReasons = true;
+    private bool isSubmitting = false;
+    private string? successMessage;
+    private string? errorMessageForDisplay;
+    private string? fileErrorMessage;
+    private bool isFileErrorActive = false;
+
+    private const long MAX_FILE_SIZE = 75 * 1024 * 1024; // 75 MB
+
+    private void HandleFileSelectedRetard(InputFileChangeEventArgs e)
+    {
+        Logger.LogInformation("[BlazorAppLog Retard] HandleFileSelectedRetard déclenché.");
+        Model.JustificatifFile = null;
+        fileErrorMessage = null;
+        isFileErrorActive = false;
+
+        if (errorMessageForDisplay != null &&
+            (errorMessageForDisplay.Contains("PDF") || errorMessageForDisplay.Contains("trop volumineux") || errorMessageForDisplay.Contains("justificatif valable")))
+        {
+            errorMessageForDisplay = null;
+        }
+
+        var file = e.GetMultipleFiles(1).FirstOrDefault();
+
+        if (file != null)
+        {
+            Logger.LogInformation("[BlazorAppLog Retard] Fichier reçu: Nom='{FileName}', Taille={FileSize}, TypeMIME='{FileContentType}'", file.Name, file.Size, file.ContentType);
+            if (file.ContentType != "application/pdf" && !file.Name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+            {
+                fileErrorMessage = "Le fichier doit être au format PDF.";
+                isFileErrorActive = true;
+            }
+            else if (file.Size == 0)
+            {
+                fileErrorMessage = "Le fichier PDF sélectionné est vide et ne peut pas être utilisé.";
+                isFileErrorActive = true;
+            }
+            else if (file.Size > MAX_FILE_SIZE)
+            {
+                fileErrorMessage = $"Le fichier PDF '{file.Name}' est trop volumineux ({file.Size / (1024.0 * 1024.0):F1} Mo). Maximum: {MAX_FILE_SIZE / (1024 * 1024)} Mo.";
+                isFileErrorActive = true;
+            }
+            else
+            {
+                Model.JustificatifFile = file;
+            }
+        }
+        else
+        {
+            Logger.LogWarning("[BlazorAppLog Retard] HandleFileSelectedRetard: Aucun fichier reçu.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task HandleRetardSubmitAsync(EditContext editContext)
+    {
+        Logger.LogInformation("[BlazorAppLog Retard] Début de HandleRetardSubmitAsync.");
+        isSubmitting = true;
+        successMessage = null;
+        errorMessageForDisplay = null;
+
+        StateHasChanged();
+
+        if (isFileErrorActive && !string.IsNullOrEmpty(fileErrorMessage))
+        {
+            errorMessageForDisplay = fileErrorMessage;
+            Logger.LogWarning("[BlazorAppLog Retard] Erreur fichier de HandleFileSelectedRetard toujours active: {ErrorMsg}", fileErrorMessage);
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        if (!editContext.Validate())
+        {
+            Logger.LogWarning("[BlazorAppLog Retard] Le modèle n'est pas valide (DataAnnotations).");
+            errorMessageForDisplay = "Le formulaire contient des erreurs. Veuillez corriger les champs indiqués.";
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        // --- Obtenir l'ID du stagiaire connecté ---
+        // CETTE SECTION EST UN PLACEHOLDER ET DOIT ÊTRE ADAPTÉE À VOTRE SYSTÈME D'AUTHENTIFICATION
+        int currentStagiaireId = 0;
+        // Exemple : currentStagiaireId = await GetCurrentUserIdFromAuthAsync();
+        // !! Pour l'instant, currentStagiaireId = 0 causera une erreur plus bas.
+        // !! IMPÉRATIF : Implémentez la récupération de l'ID du stagiaire réel.
+        if (currentStagiaireId == 0)
+        {
+            Logger.LogError("[BlazorAppLog Retard] ID Stagiaire est à 0. La logique d'authentification doit être implémentée.");
+            errorMessageForDisplay = "ERREUR DE CONFIGURATION : L'identifiant du stagiaire n'a pas pu être déterminé.";
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        string? nomFichierSauvegardePourBDD = null;
+        if (Model.JustificatifFile != null && !isFileErrorActive)
+        {
+            try
+            {
+                var nomFichierOriginal = Path.GetFileName(Model.JustificatifFile.Name);
+                var extensionFichier = Path.GetExtension(nomFichierOriginal);
+                nomFichierSauvegardePourBDD = $"{Guid.NewGuid()}{extensionFichier}";
+
+                var dossierDeSauvegarde = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "justificatifs_retards");
+                if (!Directory.Exists(dossierDeSauvegarde))
+                {
+                    Directory.CreateDirectory(dossierDeSauvegarde);
+                }
+                var cheminCompletFichier = Path.Combine(dossierDeSauvegarde, nomFichierSauvegardePourBDD);
+
+                await using var stream = new FileStream(cheminCompletFichier, FileMode.Create);
+                await Model.JustificatifFile.OpenReadStream(MAX_FILE_SIZE).CopyToAsync(stream);
+                Logger.LogInformation("[BlazorAppLog Retard] Fichier '{OriginalName}' sauvegardé: {SavedName}", nomFichierOriginal, nomFichierSauvegardePourBDD);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "[BlazorAppLog Retard] Erreur sauvegarde fichier justificatif.");
+                errorMessageForDisplay = $"Erreur traitement fichier: {ex.Message}";
+                isSubmitting = false; StateHasChanged(); return;
+            }
+        }
 
 
+        //     TODO: Save un nouveau Retard (similaire à absence)
+        // try
+        // {
+        //     if (DbContext.Retards == null || DbContext.RetardStagiaires == null || DbContext.RaisonsRetard == null)
+        //     {
+        //         Logger.LogError("[BlazorAppLog Retard] Un ou plusieurs DbSets nécessaires sont null.");
+        //         errorMessageForDisplay = "Erreur de configuration de la base de données.";
+        //         isSubmitting = false; StateHasChanged(); return;
+        //     }
 
+
+        //     Logger.LogInformation("[BlazorAppLog Retard] Retard (ID: {RetardId}) et liaison stagiaire sauvegardés.", nouveauRetard.IdRetard);
+        //     successMessage = "Votre déclaration de retard a été enregistrée !";
+        //     Model = new RetardFormModel();
+        //     fileErrorMessage = null; isFileErrorActive = false; errorMessageForDisplay = null;
+        // }
+        // catch (DbUpdateException dbEx)
+        // {
+        //     Logger.LogError(dbEx, "[BlazorAppLog Retard] Erreur DbUpdateException: {InnerEx}", dbEx.InnerException?.Message);
+        //     errorMessageForDisplay = $"Erreur BDD: {dbEx.InnerException?.Message ?? dbEx.Message}.";
+        // }
+        // catch (Exception ex)
+        // {
+        //     Logger.LogError(ex, "[BlazorAppLog Retard] Erreur générale sauvegarde.");
+        //     errorMessageForDisplay = $"Erreur générale: {ex.Message}";
+        // }
+        // finally
+        // {
+        //     isSubmitting = false;
+        //     StateHasChanged();
+        // }
+    }
+}

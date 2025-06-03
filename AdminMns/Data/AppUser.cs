@@ -1,7 +1,8 @@
 ﻿
-using Microsoft.AspNetCore.Identity;
 using System;
 using System.ComponentModel.DataAnnotations;
+using AdminMns.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace AdminMns.Data
 {
@@ -45,6 +46,6 @@ namespace AdminMns.Data
         [StringLength(50, ErrorMessage = "Le {0} doit être au moins {2} et au maximum {1} caractères.", MinimumLength = 1)]
         public string NumeroEtudiant { get; set; } = string.Empty;
 
-      
+
     }
 }

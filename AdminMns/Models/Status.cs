@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema; // Requis pour [Table]
 
 namespace AdminMns.Models
 {
-    [Table("status")] // Spécifie le nom exact de la table dans la base de données
     public class Status
     {
         [Key]

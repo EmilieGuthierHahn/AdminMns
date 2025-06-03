@@ -4,6 +4,7 @@ using AdminMns.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AdminMns.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250602145054_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.0")
+                .HasAnnotation("ProductVersion", "9.0.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -39,9 +42,6 @@ namespace AdminMns.Migrations
                     b.Property<DateTime>("DateFin")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("IdRaisonAbsence")
-                        .HasColumnType("int");
-
                     b.Property<int>("IdStagiaire")
                         .HasColumnType("int");
 
@@ -50,7 +50,14 @@ namespace AdminMns.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Motif")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.HasKey("IdAbsence");
+
+                    b.HasIndex("IdStagiaire");
 
                     b.ToTable("Absences");
                 });
@@ -127,9 +134,15 @@ namespace AdminMns.Migrations
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
 
+                    b.Property<string>("UtilisateurId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("IdCandidature");
 
-                    b.ToTable("candidatures");
+                    b.HasIndex("UtilisateurId");
+
+                    b.ToTable("Candidatures");
                 });
 
             modelBuilder.Entity("AdminMns.Models.Classe", b =>
@@ -155,33 +168,7 @@ namespace AdminMns.Migrations
 
                     b.HasIndex("IdCandidature");
 
-                    b.ToTable("classes");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.ClasseStagiaire", b =>
-                {
-                    b.Property<int>("IdStagiaire")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdClasse")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdStagiaire", "IdClasse");
-
-                    b.ToTable("ClasseStagiaires");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.CoursIntervenant", b =>
-                {
-                    b.Property<int>("IdPlanning")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdIntervenant")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdPlanning", "IdIntervenant");
-
-                    b.ToTable("CoursIntervenants");
+                    b.ToTable("Classes");
                 });
 
             modelBuilder.Entity("AdminMns.Models.Document", b =>
@@ -197,201 +184,34 @@ namespace AdminMns.Migrations
 
                     b.Property<string>("IdTypeDoc")
                         .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("NomDocument")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Statut")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StatutAffichage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TypeDossier")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("Nom")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.HasKey("IdDocument");
 
+                    b.HasIndex("IdCandidature");
+
+                    b.HasIndex("IdTypeDoc");
+
                     b.ToTable("Documents");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.Entretien", b =>
-                {
-                    b.Property<int>("IdUtilisateur")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdRendezVous")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdUtilisateur", "IdRendezVous");
-
-                    b.ToTable("Entretiens");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.Intervenant", b =>
-                {
-                    b.Property<int>("IdIntervenant")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdIntervenant"));
-
-                    b.Property<string>("Adresse")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<DateTime>("DateDeCreation")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateDeNaissance")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Nom")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Prenom")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Specialite")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("Telephone")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("UtilisateurId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Ville")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("IdIntervenant");
-
-                    b.HasIndex("UtilisateurId");
-
-                    b.ToTable("Intervenants");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.Photo", b =>
-                {
-                    b.Property<string>("IdPhoto")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("IdClasse")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdStagiaire")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdPhoto");
-
-                    b.ToTable("Photos");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.Planning", b =>
-                {
-                    b.Property<int>("IdPlanning")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdPlanning"));
-
-                    b.Property<TimeSpan>("Heure")
-                        .HasColumnType("time");
-
-                    b.Property<DateTime>("Jour")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Salle")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdPlanning");
-
-                    b.ToTable("plannings");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.PlanningClasse", b =>
-                {
-                    b.Property<int>("IdPlanning")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdClasse")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdPlanning", "IdClasse");
-
-                    b.ToTable("PlanningClasses");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.RaisonAbsence", b =>
-                {
-                    b.Property<int>("IdRaisonAbsence")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdRaisonAbsence"));
-
-                    b.Property<string>("Motif")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("IdRaisonAbsence");
-
-                    b.ToTable("raisons_absence");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.RaisonRetard", b =>
-                {
-                    b.Property<int>("IdRaisonRetard")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdRaisonRetard"));
-
-                    b.Property<string>("Motif")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("IdRaisonRetard");
-
-                    b.ToTable("raisons_retard");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.RendezVous", b =>
-                {
-                    b.Property<int>("IdRendezVous")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdRendezVous"));
-
-                    b.Property<TimeSpan>("HeureRdv")
-                        .HasColumnType("time");
-
-                    b.Property<DateTime>("JourRdv")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Sujet")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("IdRendezVous");
-
-                    b.ToTable("RendezVous");
                 });
 
             modelBuilder.Entity("AdminMns.Models.Retard", b =>
@@ -405,33 +225,28 @@ namespace AdminMns.Migrations
                     b.Property<DateTime?>("DateArrivee")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("IdRaisonRetard")
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("IdStagiaire")
                         .HasColumnType("int");
 
                     b.Property<string>("Justificatif")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("Motif")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.HasKey("IdRetard");
-
-                    b.HasIndex("IdRaisonRetard");
-
-                    b.ToTable("retards");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.RetardStagiaire", b =>
-                {
-                    b.Property<int>("IdRetard")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IdStagiaire")
-                        .HasColumnType("int");
-
-                    b.HasKey("IdRetard", "IdStagiaire");
 
                     b.HasIndex("IdStagiaire");
 
-                    b.ToTable("retard_stagiaire");
+                    b.ToTable("Retards");
                 });
 
             modelBuilder.Entity("AdminMns.Models.Stagiaire", b =>
@@ -472,7 +287,7 @@ namespace AdminMns.Migrations
 
                     b.Property<string>("UtilisateurId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Ville")
                         .IsRequired()
@@ -481,27 +296,7 @@ namespace AdminMns.Migrations
 
                     b.HasKey("IdStagiaire");
 
-                    b.HasIndex("UtilisateurId");
-
-                    b.ToTable("stagiaire");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.Status", b =>
-                {
-                    b.Property<int>("IdStatus")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdStatus"));
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("IdStatus");
-
-                    b.ToTable("status");
+                    b.ToTable("Stagiaires");
                 });
 
             modelBuilder.Entity("AdminMns.Models.TypeDoc", b =>
@@ -776,6 +571,17 @@ namespace AdminMns.Migrations
                     b.HasDiscriminator().HasValue("AppUser");
                 });
 
+            modelBuilder.Entity("AdminMns.Models.Absence", b =>
+                {
+                    b.HasOne("AdminMns.Models.Stagiaire", "Stagiaire")
+                        .WithMany("Absences")
+                        .HasForeignKey("IdStagiaire")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Stagiaire");
+                });
+
             modelBuilder.Entity("AdminMns.Models.Administrateur", b =>
                 {
                     b.HasOne("AdminMns.Data.AppUser", "Utilisateur")
@@ -785,6 +591,17 @@ namespace AdminMns.Migrations
                         .IsRequired();
 
                     b.Navigation("Utilisateur");
+                });
+
+            modelBuilder.Entity("AdminMns.Models.Candidature", b =>
+                {
+                    b.HasOne("AdminMns.Data.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("UtilisateurId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
                 });
 
             modelBuilder.Entity("AdminMns.Models.Classe", b =>
@@ -798,56 +615,34 @@ namespace AdminMns.Migrations
                     b.Navigation("Candidature");
                 });
 
-            modelBuilder.Entity("AdminMns.Models.Intervenant", b =>
+            modelBuilder.Entity("AdminMns.Models.Document", b =>
                 {
-                    b.HasOne("AdminMns.Data.AppUser", "Utilisateur")
-                        .WithMany()
-                        .HasForeignKey("UtilisateurId")
+                    b.HasOne("AdminMns.Models.Candidature", "Candidature")
+                        .WithMany("Documents")
+                        .HasForeignKey("IdCandidature")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Utilisateur");
+                    b.HasOne("AdminMns.Models.TypeDoc", "TypeDoc")
+                        .WithMany()
+                        .HasForeignKey("IdTypeDoc")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Candidature");
+
+                    b.Navigation("TypeDoc");
                 });
 
             modelBuilder.Entity("AdminMns.Models.Retard", b =>
                 {
-                    b.HasOne("AdminMns.Models.RaisonRetard", "RaisonRetard")
-                        .WithMany()
-                        .HasForeignKey("IdRaisonRetard")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RaisonRetard");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.RetardStagiaire", b =>
-                {
-                    b.HasOne("AdminMns.Models.Retard", "Retard")
-                        .WithMany("RetardStagiaires")
-                        .HasForeignKey("IdRetard")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("AdminMns.Models.Stagiaire", "Stagiaire")
-                        .WithMany("RetardStagiaires")
+                        .WithMany()
                         .HasForeignKey("IdStagiaire")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Retard");
-
                     b.Navigation("Stagiaire");
-                });
-
-            modelBuilder.Entity("AdminMns.Models.Stagiaire", b =>
-                {
-                    b.HasOne("AdminMns.Data.AppUser", "Utilisateur")
-                        .WithMany()
-                        .HasForeignKey("UtilisateurId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Utilisateur");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -901,14 +696,14 @@ namespace AdminMns.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AdminMns.Models.Retard", b =>
+            modelBuilder.Entity("AdminMns.Models.Candidature", b =>
                 {
-                    b.Navigation("RetardStagiaires");
+                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("AdminMns.Models.Stagiaire", b =>
                 {
-                    b.Navigation("RetardStagiaires");
+                    b.Navigation("Absences");
                 });
 #pragma warning restore 612, 618
         }

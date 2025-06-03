@@ -3,6 +3,7 @@
 
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @using System.ComponentModel.DataAnnotations
+@using AdminMns.ViewModels
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.EntityFrameworkCore
 @using System.IO
@@ -108,7 +109,7 @@
 
 @code {
 	[SupplyParameterFromForm]
-	private AbsenceFormModel Model { get; set; } = new();
+	private AbsenceViewModel Model { get; set; } = new();
 
 	private bool isSubmitting;
 	private string? successMessage;
@@ -248,14 +249,20 @@
 			isSubmitting = false; StateHasChanged(); return;
 		}
 
+		
+		// Récupérer l'utilisateur connecté : https://learn.microsoft.com/en-us/aspnet/core/blazor/security/?view=aspnetcore-9.0&tabs=visual-studio#authenticationstateprovider-service
+		// Il faut mettre en place le AuthenticationState
+
+		// TODO: Faire un DbContext.FindAsync d'un stagiaire where IdUtilisateur = l'id du user connecté qu'on a récupéré
+
 		var nouvelleAbsence = new Absence
 		{
-			IdRaisonAbsence = idRaisonAbsenceInt,
 			DateDebut = Model.DateDebutAbsence.GetValueOrDefault(),
 			DateFin = Model.DateFinAbsence.GetValueOrDefault(),
-			DateDeclaration = DateTime.UtcNow,
+			// DateDeclaration = DateTime.UtcNow, // Normalementy pas beosin car deja initialisé dans le model automatiquement
+			Motif = "", // TODO: Remplacer par le champ correspondant dans le ViewModel
 			Justificatif = nomFichierSauvegarde,
-			IdStagiaire = 0, // !! ATTENTION CRITIQUE : REMPLACEZ CECI par la vraie logique pour obtenir IdStagiaire !!
+			Stagiaire = new Stagiaire { }, // TODO: Remplacer ça par l'objet stagiaire récupéré
 		};
 
 		try
@@ -271,7 +278,7 @@
 
 			Logger.LogInformation("[BlazorAppLog] Absence (ID: {AbsenceId}) sauvegardée.", nouvelleAbsence.IdAbsence);
 			successMessage = "Votre déclaration d'absence a été enregistrée !";
-			Model = new AbsenceFormModel();
+			Model = new AbsenceViewModel();
 			fileErrorMessage = null;
 			isFileErrorActive = false;
 			errorMessageForDisplay = null;
@@ -292,21 +299,5 @@
 			isSubmitting = false;
 			StateHasChanged();
 		}
-	}
-
-	private sealed class AbsenceFormModel
-	{
-		[Required(ErrorMessage = "La raison de l'absence est requise.")]
-		public string RaisonAbsence { get; set; } = string.Empty;
-
-		public string TextAreaAbsence { get; set; } = string.Empty;
-
-		[Required(ErrorMessage = "Merci d'entrer une date de début")]
-		public DateTime? DateDebutAbsence { get; set; } = DateTime.Today;
-
-		[Required(ErrorMessage = "Merci d'entrer une date de fin")]
-		public DateTime? DateFinAbsence { get; set; } = DateTime.Today;
-
-		public IBrowserFile? JustificatifFile { get; set; }
 	}
 }

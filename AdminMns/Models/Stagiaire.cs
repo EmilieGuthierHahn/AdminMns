@@ -1,63 +1,55 @@
-﻿// Dans Models/Stagiaire.cs
-using AdminMns.Data;
+﻿// Fichier: AdminMns/Models/Stagiaire.cs
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using AdminMns.Data;
+// Assure-toi d'avoir le using pour AppUser si AppUser.cs est dans un autre namespace (ex: AdminMns.Data)
+// using AdminMns.Data;
 
 namespace AdminMns.Models
 {
-    [Table("stagiaire")]
     public class Stagiaire
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdStagiaire { get; set; }
 
-        [Required(ErrorMessage = "Le nom du stagiaire est requis.")]
+        [Required]
         [MaxLength(50)]
         public string Nom { get; set; } = null!;
 
-        [Required(ErrorMessage = "Le prénom du stagiaire est requis.")]
+        [Required]
         [MaxLength(50)]
         public string Prenom { get; set; } = null!;
 
-        [Required(ErrorMessage = "La date de naissance est requise.")]
         public DateTime DateNaissance { get; set; }
 
-        [Required(ErrorMessage = "L'email du stagiaire est requis.")]
+        [Required]
         [MaxLength(50)]
-        [EmailAddress(ErrorMessage = "Format d'email invalide.")]
+        [EmailAddress]
         public string EmailStagiaire { get; set; } = null!;
 
-        [Required(ErrorMessage = "Le numéro de téléphone est requis.")]
+        [Required]
         [MaxLength(50)]
+        [Phone]
         public string Telephone { get; set; } = null!;
 
-        [Required(ErrorMessage = "L'adresse est requise.")]
+        [Required]
         [MaxLength(50)]
         public string Adresse { get; set; } = null!;
 
-        [Required(ErrorMessage = "La ville est requise.")]
+        [Required]
         [MaxLength(50)]
         public string Ville { get; set; } = null!;
 
-        public required virtual AppUser Utilisateur { get; set; }
+        [ForeignKey("AppUser")]
+        public string UtilisateurId { get; set; } = null!; // Clé étrangère vers AspNetUsers (AppUser.Id)
 
-        // --- NOUVELLES LIGNES À AJOUTER ICI ---
-        // Propriété de navigation vers la table de liaison RetardStagiaire
-        // Un stagiaire peut avoir plusieurs enregistrements de retard via cette table de liaison.
-        public virtual ICollection<RetardStagiaire> RetardStagiaires { get; set; }
-        // --- FIN DES NOUVELLES LIGNES ---
+        // --- PROPRIÉTÉ DE NAVIGATION MANQUANTE À AJOUTER/VÉRIFIER ---
 
-        // Constructeur
-        public Stagiaire()
-        {
-            // Initialisez TOUTES vos propriétés de collection ici
-            // Si vous aviez d'autres collections (par exemple pour Photo, ClasseStagiaire, etc.), elles seraient initialisées ici aussi.
-            // Exemple : Photos = new HashSet<Photo>();
-
-            // --- NOUVELLE LIGNE À AJOUTER DANS LE CONSTRUCTEUR ---
-            RetardStagiaires = new HashSet<RetardStagiaire>();
-            // --- FIN DE LA NOUVELLE LIGNE DANS LE CONSTRUCTEUR ---
-        }
+        // Relations inverses
+        public virtual ICollection<Absence> Absences { get; set; } = new List<Absence>();
+        // public virtual ICollection<Candidature> Candidatures { get; set; } = new List<Candidature>(); // Si tu as une relation Stagiaire -> Candidatures
     }
 }

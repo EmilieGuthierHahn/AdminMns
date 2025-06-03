@@ -1,27 +1,34 @@
-﻿// --- NECESSAIRE EN HAUT DE CHAQUE FICHIER ---
-using System; // Pour DateTime, TimeSpan
-using System.ComponentModel.DataAnnotations; // Pour [Key]
-using System.ComponentModel.DataAnnotations.Schema; // Optionnel, pour [Table] ou [Column] si besoin
+﻿// Fichier: AdminMns/Models/Absence.cs
+using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace AdminMns.Models // Assurez-vous que le namespace est correct
+namespace AdminMns.Models
 {
-    // Correspond à la table 'absence'
-    public class Absence
+    public class Absence // Le nom de la table est "Absences"
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int IdAbsence { get; set; }
-        public DateTime DateFin { get; set; }
-        [MaxLength(50)]
-        public string Justificatif { get; set; } = null!; // = null!; pour éviter warning si non-nullable
+
+        [Required]
         public DateTime DateDebut { get; set; }
-        public DateTime DateDeclaration { get; set; }
+        [Required]
+        public DateTime DateFin { get; set; }
 
-        // Clés étrangères (simples pour l'instant)
-        public int IdStagiaire { get; set; }
-        public int IdRaisonAbsence { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public required string Justificatif { get; set; }
 
-        // Vous pourriez ajouter des propriétés de navigation ici plus tard
-        // public virtual Stagiaire Stagiaire { get; set; }
-        // public virtual RaisonAbsence RaisonAbsence { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public required string Motif { get; set; }
+
+        public DateTime DateDeclaration { get; set; } = DateTime.Now;
+         
+        public int IdStagiaire { get; set; } // Clé étrangère
+
+        [ForeignKey("IdStagiaire")]
+        public virtual required Stagiaire Stagiaire { get; set; } //Une Absence appartient à UN Stagiaire
     }
 }

@@ -1,4 +1,4 @@
-﻿// --- NECESSAIRE EN HAUT DE CHAQUE FICHIER ---
+﻿
 using System.ComponentModel.DataAnnotations; // Pour [Key]
 
 namespace AdminMns.Models // Assurez-vous que le namespace est correct
@@ -8,8 +8,8 @@ namespace AdminMns.Models // Assurez-vous que le namespace est correct
     {
         [Key]
         [MaxLength(50)]
-        public string IdTypeDoc { get; set; } = null!; // Clé primaire Varchar
+        public required string IdTypeDoc { get; set; }
         [MaxLength(50)]
-        public string Description { get; set; } = null!;
+        public required string Description { get; set; }
     }
 }

@@ -1,44 +1,31 @@
-﻿// Dans Models/Retard.cs
-using System;
-using System.Collections.Generic; // <-- Assurez-vous que ce using est présent
+﻿// Fichier: AdminMns/Models/Retard.cs
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminMns.Models
 {
-    [Table("retards")]
     public class Retard
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)] // ID auto-généré
         public int IdRetard { get; set; }
 
-        [Display(Name = "Date d'arrivée")]
         public DateTime? DateArrivee { get; set; }
 
-        [MaxLength(500, ErrorMessage = "Le justificatif ne peut pas dépasser 500 caractères.")]
-        public string? Justificatif { get; set; }
+        [MaxLength(500)]
+        public string? Justificatif { get; set; } // Stockera le CHEMIN du fichier, pas le fichier lui-même
 
-        [Required(ErrorMessage = "La raison du retard est requise.")]
-        public int IdRaisonRetard { get; set; }
+        [Required]
+        [MaxLength(50)]
+        public required string Motif { get; set; }
 
-        [ForeignKey("IdRaisonRetard")]
-        public virtual RaisonRetard? RaisonRetard { get; set; }
+        [Required]
+        [MaxLength(1000)] // Choisissez une longueur appropriée
+        public required string Details { get; set; }
 
-        // --- LIGNES AJOUTÉES ---
-        // Propriété de navigation vers la table de liaison RetardStagiaire
-        // Un retard peut concerner plusieurs stagiaires.
-        public virtual ICollection<RetardStagiaire> RetardStagiaires { get; set; }
-        // --- FIN DES LIGNES AJOUTÉES ---
+        public int IdStagiaire { get; set; } // Clé étrangère
 
-        // Constructeur
-        public Retard()
-        {
-            // Si vous avez d'autres collections à initialiser pour l'entité Retard, faites-le ici.
-
-            // --- LIGNE AJOUTÉE DANS LE CONSTRUCTEUR ---
-            RetardStagiaires = new HashSet<RetardStagiaire>();
-            // --- FIN DE LA LIGNE AJOUTÉE DANS LE CONSTRUCTEUR ---
-        }
+        [ForeignKey("IdStagiaire")]
+        public virtual required Stagiaire Stagiaire { get; set; }
     }
 }

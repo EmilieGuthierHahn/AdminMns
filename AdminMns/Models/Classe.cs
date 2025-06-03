@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminMns.Models // Assurez-vous que ce namespace correspond à votre projet
 {
-    [Table("classes")] // Nom de la table dans la base de données (conventionnel au pluriel et minuscules)
     public class Classe
     {
         [Key]

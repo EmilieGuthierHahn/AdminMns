@@ -1,11 +1,11 @@
 ﻿// Dans Models/Candidature.cs
+using System; // Pour DateTime si vous l'ajoutez
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System; // Pour DateTime si vous l'ajoutez
+using AdminMns.Data;
 
 namespace AdminMns.Models
 {
-    [Table("candidatures")]
     public class Candidature
     {
         [Key]
@@ -18,15 +18,12 @@ namespace AdminMns.Models
 
         public DateTime? DateSoumission { get; set; } // Optionnel
 
-        // Si une candidature peut mener à plusieurs classes (improbable, généralement 1-1 ou 1-0)
-        // ou si une classe est issue d'UNE candidature.
-        // Si une classe DOIT avoir une candidature, la relation est dans Classe.cs.
-        // Si une candidature PEUT avoir une classe (ou est liée à une classe après coup),
-        // vous pourriez avoir une clé étrangère ici aussi, mais c'est moins courant
-        // si IdCandidature est dans Classe.cs.
+        [Required] // À rendre nullable si une candidature peut exister sans utilisateur lié au début
+        public string UtilisateurId { get; set; } = null!; // Clé étrangère vers AspNetUsers.Id
+        [ForeignKey("UtilisateurId")]
+        public virtual AppUser? AppUser { get; set; } // Utilise ton AppUser.cs
 
-        // public int? IdClasse { get; set; } // Si une candidature est liée à UNE classe spécifique
-        // [ForeignKey("IdClasse")]
-        // public virtual Classe? Classe { get; set; }
+        // Propriété de navigation inverse (bonne pratique)
+        public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
     }
 }

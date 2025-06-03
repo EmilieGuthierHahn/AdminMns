@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace AdminMns.Models
 {
-    [Table("plannings")] // Assurez-vous du nom de la table si différent
     public class Planning
     {
         [Key]

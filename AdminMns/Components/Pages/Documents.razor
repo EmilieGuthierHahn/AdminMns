@@ -1,5 +1,7 @@
 ﻿@page "/Documents"
-
+@using AdminMns.ViewModels
+@using AdminMns.Services
+@inject IDocumentService DocumentSvc
 
 <div class="containerGlobalDocument">
 	<div class="container-fluid contPageDocument">
@@ -31,13 +33,13 @@
 					</div>
 					<div class="nombreAbsence">
 						<div class="rectangleRetard bg-orange rounded p-3 text-center me-3">
-							<i class="bi bi-filetype-doc"></i> Nombre des retard : 0
+							<i class="bi bi-filetype-doc"></i> Nombre des retard : @compteurRetards
 						</div>
 						<div class="rectangleAbsence bg-orange rounded p-3 text-center">
-							<i class="bi bi-filetype-doc"></i> Nombre d'absence : 2
+							<i class="bi bi-filetype-doc"></i> Nombre d'absence : @compteurAbsences
 						</div>
 						<div class="rectangleDocument bg-orange rounded p-3 text-center">
-							<i class="bi bi-filetype-doc"></i> Documents à rendre : 3
+							<i class="bi bi-filetype-doc"></i> Documents à rendre : @compteurDocumentsARendre
 						</div>
 					</div>
 					<div class="coupurePage">
@@ -46,7 +48,6 @@
 					<table class="tableauDocuments">
 						<thead>
 							<tr>
-
 								<th scope="col">Nom du document</th>
 								<th scope="col">Type du dossier</th>
 								<th scope="col">Date</th>
@@ -54,39 +55,88 @@
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
-								<td scope="row">Lettre de motivation</td>
-								<td>Dossier d'inscription</td>
-								<td>08.08.24</td>
-								<td>Reçu <i class="bi bi-check2-circle"></i></td>
-
-							</tr>
-							<tr>
-								<td scope="row">CV</td>
-								<td>Dossier d'inscription</td>
-								<td>08.08.24</td>
-								<td>Reçu <i class="bi bi-check2-circle"></i></td>
-							</tr>
-							<tr>
-								<td scope="row">Contrat stagiaire</td>
-								<td>Dossier stagiaire</td>
-								<td>09.09.24</td>
-								<td>Reçu <i class="bi bi-check2-circle"></i></td>
-							</tr>
-							<tr>
-								<td scope="row">Fiche de renseignements</td>
-								<td>Dossier stagiaire</td>
-								<td>09.09.24</td>
-								<td>En attente <i class="bi bi-x-circle"></i></td>
-							</tr>
+							@if (listeDocumentsVM != null && listeDocumentsVM.Any())
+							{
+								@foreach (var document in listeDocumentsVM)
+								{
+									<tr>
+										<td scope="row">@document.NomDocument</td>
+										<td>@document.TypeDossier</td>
+										<td>@document.Date.ToString("dd.MM.yy")</td>
+										<td>
+											@if (document.Statut == "Reçu")
+											{
+												@:Reçu <i class="bi bi-check2-circle"></i>
+											}
+											else if (document.Statut == "En attente")
+											{
+												@:En attente <i class="bi bi-x-circle"></i>
+											}
+											else
+											{
+												@document.Statut
+											}
+										</td>
+									</tr>
+								}
+							}
+							else if (erreurChargement)
+							{
+								<tr>
+									<td colspan="4" class="text-center text-danger">Une erreur est survenue lors du chargement des documents.</td>
+								</tr>
+							}
+							else
+							{
+								<tr>
+									<td colspan="4" class="text-center">Aucun document à afficher.</td>
+								</tr>
+							}
 						</tbody>
 					</table>
 				</div>
 			</main>
-			
 		</div>
 	</div>
 	<div id="footer">
 		<Footer />
 	</div>
 </div>
+@code {
+	private List<DocumentViewModel>? listeDocumentsVM;
+	private bool erreurChargement = false;
+
+	private int compteurRetards;
+	private int compteurAbsences;
+	private int compteurDocumentsARendre;
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			// Charger les documents en premier
+			listeDocumentsVM = await DocumentSvc.RecupererListeDocumentsAsync();
+
+			// Ensuite, charger les compteurs
+			compteurDocumentsARendre = await DocumentSvc.CompterDocumentsARendreAsync();
+			compteurRetards = await DocumentSvc.ObtenirNombreRetardsReelsAsync();
+			compteurAbsences = await DocumentSvc.ObtenirNombreAbsencesReellesAsync();
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Erreur critique lors du chargement des données pour la page Documents : {ex.Message}");
+			// Pensez à un système de logging plus robuste pour la production (ex: Serilog)
+			erreurChargement = true;
+			listeDocumentsVM = new List<DocumentViewModel>(); // Initialisation pour éviter une erreur de référence nulle
+		}
+	}
+
+	// Assurez-vous que votre DocumentViewModel possède les propriétés suivantes (ajustez si les noms sont différents) :
+	// public class DocumentViewModel
+	// {
+	//     public string NomDocument { get; set; }
+	//     public string TypeDossier { get; set; }
+	//     public DateTime Date { get; set; }
+	//     public string Statut { get; set; }
+	// }
+}
