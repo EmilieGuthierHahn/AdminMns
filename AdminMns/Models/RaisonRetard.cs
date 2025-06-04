@@ -10,7 +10,7 @@ namespace AdminMns.Models
         public int IdRaisonRetard { get; set; }
 
         [Required(ErrorMessage = "Le libellé de la raison est requis.")]
-        [MaxLength(100)]
+        [MaxLength(250)]
         public string Libelle { get; set; } = string.Empty;
     }
 }

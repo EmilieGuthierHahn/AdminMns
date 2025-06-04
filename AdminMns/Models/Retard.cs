@@ -16,7 +16,7 @@ namespace AdminMns.Models
         public string? Justificatif { get; set; } // Stockera le CHEMIN du fichier, pas le fichier lui-même
 
         [Required]
-        [MaxLength(50)]
+        [MaxLength(250)]
         public required string Motif { get; set; }
 
         [Required]
