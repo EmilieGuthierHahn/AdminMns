@@ -7,6 +7,7 @@
 @using System.IO
 @using AdminMns.Data
 @using AdminMns.Models
+
 @inject ApplicationDbContext DbContext
 @inject ILogger<DeclarerUnRetard> Logger
 @inject NavigationManager NavigationManager
@@ -297,4 +298,38 @@
         //     StateHasChanged();
         // }
     }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     Logger.LogInformation("[BlazorAppLog Retard] Initialisation de la page DeclarerUnRetard, chargement des raisons.");
+    //     isLoadingReasons = true; // Déjà initialisé à true, mais bonne pratique de le réaffirmer au début du chargement.
+    //     try
+    //     {
+    //         // Assure-toi que DbContext.RaisonsRetard existe et est configuré.
+    //         // Si RaisonsRetard n'est pas le nom de ton DbSet, ajuste-le.
+    //         if (DbContext.Retards != null) // Vérification que le DbSet n'est pas null
+    //         {
+    //             raisonsRetard = await DbContext.Retards.AsNoTracking().ToListAsync();
+    //             Logger.LogInformation("[BlazorAppLog Retard] {Count} raisons de retard chargées.", raisonsRetard.Count);
+    //         }
+    //         else
+    //         {
+    //             Logger.LogError("[BlazorAppLog Retard] Le DbSet RaisonsRetard est null dans ApplicationDbContext.");
+    //             raisonsRetard = new List<Retard>(); // Initialiser à une liste vide pour éviter null ref plus loin
+    //             errorMessageForDisplay = "Erreur de configuration: Impossible de charger les raisons des retards (DbSet manquant).";
+    //         }
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         Logger.LogError(ex, "[BlazorAppLog Retard] Erreur lors du chargement des raisons de retard.");
+    //         raisonsRetard = new List<RaisonRetard>(); // Initialiser à une liste vide en cas d'erreur
+    //         errorMessageForDisplay = "Une erreur est survenue lors du chargement des raisons de retard. Veuillez réessayer plus tard.";
+    //     }
+    //     finally
+    //     {
+    //         isLoadingReasons = false; // TRÈS IMPORTANT : Mettre à false pour que l'UI se mette à jour
+    //                                   // StateHasChanged(); // Normalement pas nécessaire ici car OnInitializedAsync gère le rendu initial.
+    //                                   // Mais si tu as des await complexes non liés au cycle de vie direct, tu pourrais en avoir besoin.
+    //     }
+    // }
+
 }

@@ -3,10 +3,12 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text
 @using System.Text.Encodings.Web
+@using AdminMns.Models
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
 @using AdminMns.Data 
 @using Microsoft.AspNetCore.Components.Forms 
+@using Microsoft.EntityFrameworkCore
 
 @inject UserManager<AppUser> UserManager
 @inject IUserStore<AppUser> UserStore
@@ -15,6 +17,8 @@
 @inject ILogger<Register> Logger
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject ApplicationDbContext ApplicationDbContext
 
 <PageTitle>Inscription au Journal de Bord</PageTitle>
 
@@ -203,6 +207,109 @@
         Logger.LogInformation("Nouvel utilisateur enregistré avec succès.");
 
         var userId = await UserManager.GetUserIdAsync(user);
+
+        // --- DÉBUT : LOGIQUE POUR STAGIAIRE ET RÔLES ---
+
+        // 1. GESTION SPÉCIFIQUE SI LE STATUT EST "STAGIAIRE"
+        if (Input.Statut == "Stagiaire")
+        {
+            // Assigner le rôle "Stagiaire" à l'utilisateur Identity
+            // Assure-toi que le rôle "Stagiaire" existe. Tu peux le créer au démarrage de l'appli.
+            if (await RoleManager.RoleExistsAsync("Stagiaire"))
+            {
+                if (!await UserManager.IsInRoleAsync(user, "Stagiaire"))
+                {
+                    var roleResult = await UserManager.AddToRoleAsync(user, "Stagiaire");
+                    if (roleResult.Succeeded)
+                    {
+                        Logger.LogInformation("Utilisateur {Email} assigné au rôle 'Stagiaire'.", user.Email);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Échec de l'assignation du rôle 'Stagiaire' à {Email}: {Errors}", user.Email, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                        // Ajouter une erreur non bloquante pour informer
+                        var roleError = new IdentityError { Description = "Erreur lors de l'assignation du rôle stagiaire." };
+                        identityErrors = identityErrors?.Append(roleError) ?? new List<IdentityError> { roleError };
+                    }
+                }
+            }
+            else
+            {
+                Logger.LogWarning("Le rôle 'Stagiaire' n'existe pas. Il n'a pas été assigné à {Email}.", user.Email);
+                var roleMissingError = new IdentityError { Description = "Configuration de rôle manquante pour les stagiaires." };
+                identityErrors = identityErrors?.Append(roleMissingError) ?? new List<IdentityError> { roleMissingError };
+            }
+
+            // Créer l'entité Stagiaire correspondante
+            var nouveauStagiaire = new Stagiaire // Assure-toi que 'Stagiaire' est bien AdminMns.Models.Stagiaire
+            {
+                UtilisateurId = userId,
+                Nom = Input.Nom,
+                Prenom = Input.Prenom,
+                DateNaissance = Input.DateNaissance,
+                EmailStagiaire = Input.Email, // L'email du stagiaire est celui de l'inscription
+                Telephone = Input.Telephone,
+                Adresse = $"{Input.NumeroRue} {Input.NomRue}".Trim(), // On combine numéro et nom de rue
+                Ville = Input.Ville
+                // Note: Input.NumeroEtudiant est dans AppUser, pas directement dans le modèle Stagiaire actuel.
+            };
+
+            ApplicationDbContext.Stagiaires.Add(nouveauStagiaire);
+            try
+            {
+                await ApplicationDbContext.SaveChangesAsync();
+                Logger.LogInformation("Entité Stagiaire créée pour l'utilisateur {Email} (ID Stagiaire: {StagiaireId}).", user.Email, nouveauStagiaire.IdStagiaire);
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Logger.LogError(dbEx, "Erreur DbUpdateException lors de la création de l'entité Stagiaire pour {Email}: {InnerMessage}", user.Email, dbEx.InnerException?.Message);
+                var stagiaireDbError = new IdentityError { Description = "Votre compte a été créé, mais une erreur technique est survenue lors de la création de votre profil stagiaire. Contactez l'administration." };
+                identityErrors = identityErrors?.Append(stagiaireDbError) ?? new List<IdentityError> { stagiaireDbError };
+                // Important : À ce stade, l'utilisateur Identity est créé mais le Stagiaire ne l'est pas.
+                // Tu pourrais envisager une logique de compensation (supprimer l'utilisateur Identity) ou juste informer.
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Erreur générale lors de la création de l'entité Stagiaire pour {Email}", user.Email);
+                var stagiaireExError = new IdentityError { Description = "Une erreur inattendue est survenue lors de la création de votre profil stagiaire." };
+                identityErrors = identityErrors?.Append(stagiaireExError) ?? new List<IdentityError> { stagiaireExError };
+            }
+        }
+        // 2. GESTION DES AUTRES STATUTS (SI ILS CORRESPONDENT À DES RÔLES)
+        // Par exemple, si "Commandant" est un rôle.
+        // Tu peux rendre cette logique plus générique si plusieurs statuts mappent directement à des noms de rôles.
+        else if (!string.IsNullOrEmpty(Input.Statut)) // Pour les autres statuts non vides
+        {
+            if (await RoleManager.RoleExistsAsync(Input.Statut))
+            {
+                if (!await UserManager.IsInRoleAsync(user, Input.Statut))
+                {
+                    var roleResult = await UserManager.AddToRoleAsync(user, Input.Statut);
+                    if (roleResult.Succeeded)
+                    {
+                        Logger.LogInformation("Utilisateur {Email} assigné au rôle '{Role}'.", user.Email, Input.Statut);
+                    }
+                    else
+                    {
+                        Logger.LogWarning("Échec de l'assignation du rôle '{Role}' à {Email}: {Errors}", Input.Statut, user.Email, string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                        var otherRoleError = new IdentityError { Description = $"Erreur assignation rôle {Input.Statut}." };
+                        identityErrors = identityErrors?.Append(otherRoleError) ?? new List<IdentityError> { otherRoleError };
+                    }
+                }
+            }
+            else
+            {
+                Logger.LogWarning("Le rôle '{RoleName}' (basé sur le statut) n'existe pas et n'a pas été assigné à {Email}.", Input.Statut, user.Email);
+                // Tu peux choisir d'afficher une erreur ou non si le statut ne correspond pas à un rôle connu.
+            }
+        }
+        // --- FIN : LOGIQUE POUR STAGIAIRE ET RÔLES ---
+
+        // Si des erreurs ont été ajoutées à identityErrors (notamment pour la création du Stagiaire ou rôle),
+        // il faut les afficher. La variable `Message` s'en chargera. Si c'est critique, tu pourrais vouloir
+        // ne pas procéder à l'envoi de l'email de confirmation ou à la redirection.
+        // Pour l'instant, on continue, mais l'utilisateur verra les messages d'erreur.
+
         var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
         code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(

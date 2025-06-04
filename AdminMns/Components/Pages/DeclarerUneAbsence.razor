@@ -9,9 +9,12 @@
 @using System.IO
 @using AdminMns.Data
 @using AdminMns.Models
+@using Microsoft.AspNetCore.Components.Authorization
+
 @inject ApplicationDbContext DbContext
 @inject ILogger<DeclarerUneAbsence> Logger
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="containerGlobalDeclarerAbsence">
 	<div class="container-fluid contDeclarerAbsence">
@@ -220,12 +223,37 @@
 
 		Logger.LogInformation("[BlazorAppLog] Toutes les validations initiales passées. Fichier présent: {FileName}", Model.JustificatifFile.Name);
 
-		int idRaisonAbsenceInt;
-		if (!int.TryParse(Model.RaisonAbsence, out idRaisonAbsenceInt))
+		// --- DÉBUT DE LA LOGIQUE MODIFIÉE POUR RÉCUPÉRER LE STAGIAIRE CONNECTÉ ---
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User; // <--- ICI, 'user' EST DÉCLARÉ ET INITIALISÉ
+
+		// Ensuite, il y a une vérification pour s'assurer que l'utilisateur est authentifié :
+		if (user.Identity == null || !user.Identity.IsAuthenticated)
 		{
-			errorMessageForDisplay = "La raison de l'absence est invalide.";
-			isSubmitting = false; StateHasChanged(); return;
+			errorMessageForDisplay = "Utilisateur non authentifié. Impossible de déclarer une absence.";
+			Logger.LogWarning("[BlazorAppLog] Tentative de déclaration d'absence par un utilisateur non authentifié.");
+			isSubmitting = false;
+			StateHasChanged();
+			return; // Important: on sort de la méthode si non authentifié
 		}
+
+		// Et SEULEMENT ENSUITE vient la ligne où tu utilises 'user' pour obtenir utilisateurId :
+		var utilisateurId = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+		// Recherche le stagiaire correspondant à cet ID utilisateur dans la table Stagiaires
+		// Ta classe Stagiaire a une propriété UtilisateurId qui est la clé étrangère vers AppUser.Id
+		var stagiaireConnecte = await DbContext.Stagiaires
+											  .FirstOrDefaultAsync(s => s.UtilisateurId == utilisateurId);
+
+		if (stagiaireConnecte == null)
+		{
+			errorMessageForDisplay = "Aucun profil stagiaire n'est associé à votre compte. Veuillez contacter l'administration.";
+			Logger.LogWarning("[BlazorAppLog] Aucun stagiaire trouvé avec UtilisateurId: {UtilisateurId}", utilisateurId);
+			isSubmitting = false;
+			StateHasChanged();
+			return;
+		}
+		// --- FIN DE LA LOGIQUE MODIFIÉE POUR RÉCUPÉRER LE STAGIAIRE CONNECTÉ ---
 
 		string? nomFichierSauvegarde = null;
 		try
@@ -255,14 +283,62 @@
 
 		// TODO: Faire un DbContext.FindAsync d'un stagiaire where IdUtilisateur = l'id du user connecté qu'on a récupéré
 
+		// ici je gère l'affichage dans la bdd du texte du motif de l'absence, à partir du value de l'option du formulaire
+		string motifTexte; // Variable pour stocker le texte final du motif
+
+		switch (Model.RaisonAbsence)
+		{
+			case "1":
+				motifTexte = "Maladie";
+				break;
+			case "2":
+				motifTexte = "Rendez-vous";
+				break;
+			case "3":
+				motifTexte = "Transport";
+				break;
+			case "4":
+				motifTexte = "Autre";
+				break;
+			default:
+				// Ce cas est atteint si Model.RaisonAbsence est vide ("") ou une valeur inattendue.
+				// Tu devrais avoir une validation pour t'assurer qu'une raison valide est sélectionnée.
+				// Si la validation est passée, ce cas ne devrait pas être problématique,
+				// mais par sécurité, on peut assigner une valeur ou lever une erreur.
+				Logger.LogWarning("[BlazorAppLog] Raison d'absence non valide ou non sélectionnée: {RaisonAbsenceValue}", Model.RaisonAbsence);
+				// Option 1: Mettre une valeur par défaut (si le champ Motif peut être vide ou avoir une valeur par défaut)
+				motifTexte = "Raison non spécifiée";
+				// Option 2: Retourner une erreur à l'utilisateur (plus robuste si le champ est requis)
+				// errorMessageForDisplay = "Veuillez sélectionner une raison valide pour l'absence.";
+				// isSubmitting = false;
+				// StateHasChanged();
+				// return; // Sortir de la méthode si la raison est invalide et requise.
+				break;
+		}
+
+		// Ajoute les détails du champ TextArea si nécessaire
+		// (Model.TextAreaAbsence est la propriété liée à ton <InputTextArea>)
+		if (!string.IsNullOrWhiteSpace(Model.TextAreaAbsence))
+		{
+			if (Model.RaisonAbsence == "4") // Si la raison est "Autre", les détails sont la suite directe
+			{
+				motifTexte += $": {Model.TextAreaAbsence}";
+			}
+			else // Pour les autres raisons, on peut ajouter les détails entre parenthèses
+			{
+				motifTexte += $" (Détails: {Model.TextAreaAbsence})";
+			}
+		}
+
+		// Maintenant, utilise motifTexte pour initialiser ta nouvelle absence
 		var nouvelleAbsence = new Absence
 		{
 			DateDebut = Model.DateDebutAbsence.GetValueOrDefault(),
 			DateFin = Model.DateFinAbsence.GetValueOrDefault(),
-			// DateDeclaration = DateTime.UtcNow, // Normalementy pas beosin car deja initialisé dans le model automatiquement
-			Motif = "", // TODO: Remplacer par le champ correspondant dans le ViewModel
+			Motif = motifTexte, // ✅ Ici, on assigne le texte converti
 			Justificatif = nomFichierSauvegarde,
-			Stagiaire = new Stagiaire { }, // TODO: Remplacer ça par l'objet stagiaire récupéré
+			Stagiaire = stagiaireConnecte
+			// DateDeclaration est gérée par sa valeur par défaut dans le modèle Absence
 		};
 
 		try
