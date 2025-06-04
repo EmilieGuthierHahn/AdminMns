@@ -17,6 +17,7 @@ namespace AdminMns.Data // Namespace correspondant au dossier 'Data'
         public DbSet<Candidature> Candidatures { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<Retard> Retards { get; set; }
+        public DbSet<RaisonRetard> RaisonsRetard { get; set; }
         public DbSet<Stagiaire> Stagiaires { get; set; }
         public DbSet<TypeDoc> TypeDocs { get; set; }
     }
