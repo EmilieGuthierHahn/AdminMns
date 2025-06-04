@@ -71,7 +71,10 @@ namespace AdminMns.Data
 
             await SeedRolesAsync();
             await SeedUsersAsync();
-            
+
+            // --- APPEL À LA NOUVELLE MÉTHODE DE SEEDING ---
+            await SeedRaisonsRetardAsync(context, cancellationToken);
+
             // TODO: Corriger le seeding, un des modèles a une erreur
 
             //await SeedTypeDocsAsync(context, cancellationToken);
@@ -141,167 +144,49 @@ namespace AdminMns.Data
             }
         }
 
-        private async Task SeedTypeDocsAsync(ApplicationDbContext context, CancellationToken cancellationToken)
+        // --- NOUVELLE MÉTHODE POUR LES RAISONS DE RETARD ---
+        private async Task SeedRaisonsRetardAsync(ApplicationDbContext context, CancellationToken cancellationToken)
         {
-            if (!await context.TypeDocs.AnyAsync(cancellationToken))
+            // Vérifie si le DbSet existe et s'il y a déjà des données
+            if (context.RaisonsRetard != null && !await context.RaisonsRetard.AnyAsync(cancellationToken))
             {
-                _logger.LogInformation("Ensemencement des TypeDocs...");
-                context.TypeDocs.AddRange(
-                    new TypeDoc { IdTypeDoc = "CV", Description = "Curriculum Vitae" },
-                    new TypeDoc { IdTypeDoc = "LM", Description = "Lettre de Motivation" },
-                    new TypeDoc { IdTypeDoc = "CONTRAT", Description = "Contrat de Stage/Apprentissage" },
-                    new TypeDoc { IdTypeDoc = "FICHE_RENS", Description = "Fiche de Renseignements" },
-                    new TypeDoc { IdTypeDoc = "JUSTIF_ABS", Description = "Justificatif d'Absence" }
-                );
-                await context.SaveChangesAsync(cancellationToken);
-            }
-            else
+                _logger.LogInformation("Ensemencement des Raisons de Retard...");
+                var raisons = new List<RaisonRetard>
             {
-                _logger.LogInformation("Les TypeDocs existent déjà, pas d'ensemencement nécessaire.");
-            }
-        }
+                // Les ID seront auto-générés si tu n'as pas spécifié .HasData avec des ID fixes dans OnModelCreating
+                // Si tu as utilisé .HasData dans OnModelCreating, tu n'as pas besoin de seeder ici,
+                // sauf si tu veux ajouter PLUS de raisons que celles du OnModelCreating.
+                // Pour cet exemple, je suppose que les ID sont auto-incrémentés par la base de données
+                // ou que tu n'as PAS utilisé .HasData pour ces raisons spécifiques dans OnModelCreating.
+                // Si tu as des ID spécifiques à cause de .HasData, tu dois les fournir ici aussi.
+                new RaisonRetard { Libelle = "Panne de réveil (le Gremlin a encore frappé)" },
+                new RaisonRetard { Libelle = "Problèmes de transport (bus dévoré par un Grue)" },
+                new RaisonRetard { Libelle = "Embouteillages (invasion de TIE Fighters)" },
+                new RaisonRetard { Libelle = "Rendez-vous médical (contrôle anti-Spectre)" },
+                new RaisonRetard { Libelle = "Mise à jour système inopinée (Windows, évidemment...)" },
+                new RaisonRetard { Libelle = "Chat coincé dans l'imprimante 3D (ne demandez pas)" },
+                new RaisonRetard { Libelle = "Perdu dans les limbes d'un JDR trop immersif" },
+                new RaisonRetard { Libelle = "Autre (à préciser en détails galactiques)" }
+            };
 
-        private async Task SeedCandidaturesAsync(ApplicationDbContext context, CancellationToken cancellationToken)
-        {
-            if (!await context.Candidatures.AnyAsync(cancellationToken))
-            {
-                _logger.LogInformation("Ensemencement des Candidatures...");
-                context.Candidatures.AddRange(
-                    new Candidature { TitreOuReference = "Candidature Spontanée - Dev Web 2025", DateSoumission = new DateTime(2025, 1, 15) },
-                    new Candidature { TitreOuReference = "Candidature Programme IA - Hiver 2025", DateSoumission = new DateTime(2025, 2, 1) },
-                    new Candidature { TitreOuReference = "Candidature Réponse Offre #XYZ789", DateSoumission = null },
-                    new Candidature { TitreOuReference = "Candidature Master Design UX", DateSoumission = new DateTime(2024, 12, 5) }
-                );
-                await context.SaveChangesAsync(cancellationToken);
-            }
-            else
-            {
-                _logger.LogInformation("Les Candidatures existent déjà, pas d'ensemencement nécessaire.");
-            }
-        }
-
-        private async Task SeedDocumentsAsync(ApplicationDbContext context, CancellationToken cancellationToken)
-        {
-            if (context.Documents != null && !await context.Documents.AnyAsync(cancellationToken))
-            {
-                _logger.LogInformation("Ensemencement des Documents...");
-
-                var typeCv = await context.TypeDocs.FindAsync(new object[] { "CV" }, cancellationToken);
-                var typeLm = await context.TypeDocs.FindAsync(new object[] { "LM" }, cancellationToken);
-                var typeContrat = await context.TypeDocs.FindAsync(new object[] { "CONTRAT" }, cancellationToken);
-                var typeFicheRens = await context.TypeDocs.FindAsync(new object[] { "FICHE_RENS" }, cancellationToken);
-
-                var candDevWeb = await context.Candidatures.FirstOrDefaultAsync(c => c.TitreOuReference == "Candidature Spontanée - Dev Web 2025", cancellationToken);
-                var candIA = await context.Candidatures.FirstOrDefaultAsync(c => c.TitreOuReference == "Candidature Programme IA - Hiver 2025", cancellationToken);
-                var candOffreXYZ = await context.Candidatures.FirstOrDefaultAsync(c => c.TitreOuReference == "Candidature Réponse Offre #XYZ789", cancellationToken);
-                var candMasterUX = await context.Candidatures.FirstOrDefaultAsync(c => c.TitreOuReference == "Candidature Master Design UX", cancellationToken);
-
-                var documentsToAdd = new List<Document>();
-
-                if (typeCv != null && candDevWeb != null)
+                context.RaisonsRetard.AddRange(raisons);
+                try
                 {
-                    documentsToAdd.Add(new Document
-                    {
-                        NomDocument = "CV Développeur Web",
-                        IdTypeDoc = typeCv.IdTypeDoc,
-                        IdCandidature = candDevWeb.IdCandidature,
-                        TypeDossier = typeCv.Description,
-                        Statut = "Soumis",
-                        StatutAffichage = "CV Reçu"
-                    });
-                }
-
-                if (typeLm != null && candDevWeb != null)
-                {
-                    documentsToAdd.Add(new Document
-                    {
-                        NomDocument = "Lettre Motivation Dev Web",
-                        IdTypeDoc = typeLm.IdTypeDoc,
-                        IdCandidature = candDevWeb.IdCandidature,
-                        TypeDossier = typeLm.Description,
-                        Statut = "Soumis",
-                        StatutAffichage = "LM Reçue"
-                    });
-                }
-
-                if (typeCv != null && candIA != null)
-                {
-                    documentsToAdd.Add(new Document
-                    {
-                        NomDocument = "CV Spécialiste IA",
-                        IdTypeDoc = typeCv.IdTypeDoc,
-                        IdCandidature = candIA.IdCandidature,
-                        TypeDossier = typeCv.Description,
-                        Statut = "Soumis",
-                        StatutAffichage = "CV Reçu"
-                    });
-                }
-
-                if (typeFicheRens != null && candIA != null)
-                {
-                    documentsToAdd.Add(new Document
-                    {
-                        NomDocument = "Fiche IA",
-                        IdTypeDoc = typeFicheRens.IdTypeDoc,
-                        IdCandidature = candIA.IdCandidature,
-                        TypeDossier = typeFicheRens.Description,
-                        Statut = "Soumis",
-                        StatutAffichage = "Fiche Reçue"
-                    });
-                }
-
-                if (typeContrat != null && candOffreXYZ != null)
-                {
-                    documentsToAdd.Add(new Document
-                    {
-                        NomDocument = "Contrat pour Offre XYZ",
-                        IdTypeDoc = typeContrat.IdTypeDoc,
-                        IdCandidature = candOffreXYZ.IdCandidature,
-                        TypeDossier = typeContrat.Description,
-                        Statut = "Brouillon",
-                        StatutAffichage = "Contrat en préparation"
-                    });
-                }
-
-                if (typeCv != null && candMasterUX != null)
-                {
-                    documentsToAdd.Add(new Document
-                    {
-                        NomDocument = "CV Design UX",
-                        IdTypeDoc = typeCv.IdTypeDoc,
-                        IdCandidature = candMasterUX.IdCandidature,
-                        TypeDossier = typeCv.Description,
-                        Statut = "Soumis",
-                        StatutAffichage = "CV Reçu"
-                    });
-                }
-
-                if (typeLm != null && candMasterUX != null)
-                {
-                    documentsToAdd.Add(new Document
-                    {
-                        NomDocument = "Motivation Master UX",
-                        IdTypeDoc = typeLm.IdTypeDoc,
-                        IdCandidature = candMasterUX.IdCandidature,
-                        TypeDossier = typeLm.Description,
-                        Statut = "Soumis",
-                        StatutAffichage = "LM Reçue"
-                    });
-                }
-
-                if (documentsToAdd.Any())
-                {
-                    context.Documents.AddRange(documentsToAdd);
                     await context.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation("{Count} raisons de retard ont été ensemencées.", raisons.Count);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Erreur lors de l'ensemencement des raisons de retard.");
                 }
             }
-            else if (context.Documents == null)
+            else if (context.RaisonsRetard == null)
             {
-                _logger.LogWarning("DbSet Documents est null. Impossible d'ensemencer les documents.");
+                _logger.LogWarning("DbSet RaisonsRetard est null. Impossible d'ensemencer les raisons de retard.");
             }
             else
             {
-                _logger.LogInformation("Les Documents existent déjà, pas d'ensemencement nécessaire.");
+                _logger.LogInformation("Les Raisons de Retard existent déjà ou le DbSet est null, pas d'ensemencement nécessaire.");
             }
         }
     }
