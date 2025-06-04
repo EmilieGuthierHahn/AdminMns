@@ -11,6 +11,7 @@
 @inject ApplicationDbContext DbContext
 @inject ILogger<DeclarerUnRetard> Logger
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @* @inject IUserService UserService // Exemple pour obtenir l'ID utilisateur *@
 
 <div class="containerGlobalDeclarerRetard">
@@ -27,15 +28,15 @@
         <main class="containerDeclarerRetard">
             <h1 class="titreRetard">Déclarer un retard</h1>
 
-            @if (isLoadingReasons)
+            @if (!userIsStagiaire && !isLoadingReasons) @* Si pas stagiaire ET que le chargement initial est fini *@
+            {
+                <div class="alert alert-danger" role="alert">
+                    @errorMessageForDisplay @* Message défini dans OnInitializedAsync *@
+                </div>
+            }
+            else if (isLoadingReasons)
             {
                 <p><em>Chargement des raisons des retards...</em></p>
-            }
-            else if (raisonsRetard == null || !raisonsRetard.Any())
-            {
-                <div class="alert alert-warning" role="alert">
-                    Impossible de charger les raisons des retards. Le formulaire ne peut pas être affiché. Veuillez contacter un administrateur.
-                </div>
             }
             else
             {
@@ -201,9 +202,62 @@
         isSubmitting = true;
         successMessage = null;
         errorMessageForDisplay = null;
+        // isFileErrorActive et fileErrorMessage sont gérés par HandleFileSelectedRetard
 
         StateHasChanged();
 
+        // --- DÉBUT : Vérification du statut Stagiaire et récupération de l'ID ---
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity == null || !user.Identity.IsAuthenticated)
+        {
+            errorMessageForDisplay = "Utilisateur non authentifié. Veuillez vous connecter.";
+            Logger.LogWarning("[BlazorAppLog Retard] Tentative de soumission par un utilisateur non authentifié.");
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        if (!user.IsInRole("Stagiaire"))
+        {
+            errorMessageForDisplay = "Seuls les stagiaires sont autorisés à déclarer un retard.";
+            Logger.LogWarning("[BlazorAppLog Retard] Tentative de soumission par l'utilisateur {UserName} qui n'est pas un Stagiaire.", user.Identity.Name);
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        var utilisateurIdIdentity = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(utilisateurIdIdentity))
+        {
+            errorMessageForDisplay = "Impossible de vérifier votre identité de stagiaire (ID manquant).";
+            Logger.LogError("[BlazorAppLog Retard] L'ID de l'utilisateur (NameIdentifier) est null pour {UserName}.", user.Identity.Name);
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        // Récupérer le profil Stagiaire lié à cet utilisateur Identity
+        var stagiaireConnecte = await DbContext.Stagiaires
+                                              // .AsNoTracking() // Important si tu ne modifies pas le stagiaire ici
+                                              .FirstOrDefaultAsync(s => s.UtilisateurId == utilisateurIdIdentity);
+
+        if (stagiaireConnecte == null)
+        {
+            errorMessageForDisplay = "Votre profil stagiaire n'a pas été trouvé. Veuillez contacter l'administration.";
+            Logger.LogError("[BlazorAppLog Retard] Aucun profil Stagiaire trouvé pour l'utilisateur Identity ID: {IdentityId}, UserName: {UserName}", utilisateurIdIdentity, user.Identity.Name);
+            isSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        int currentStagiaireId = stagiaireConnecte.IdStagiaire; // ✅ ID Stagiaire réel récupéré !
+        Logger.LogInformation("[BlazorAppLog Retard] Stagiaire ID {StagiaireId} ({UserName}) soumet un retard.", currentStagiaireId, user.Identity.Name);
+        // --- FIN : Vérification du statut Stagiaire et récupération de l'ID ---
+
+        // ... (Le reste de ta validation de formulaire : isFileErrorActive, editContext.Validate()) ...
+        // que tu avais déjà :
         if (isFileErrorActive && !string.IsNullOrEmpty(fileErrorMessage))
         {
             errorMessageForDisplay = fileErrorMessage;
@@ -213,7 +267,7 @@
             return;
         }
 
-        if (!editContext.Validate())
+        if (!editContext.Validate()) // editContext.Validate() doit être appelé APRES les vérifications manuelles
         {
             Logger.LogWarning("[BlazorAppLog Retard] Le modèle n'est pas valide (DataAnnotations).");
             errorMessageForDisplay = "Le formulaire contient des erreurs. Veuillez corriger les champs indiqués.";
@@ -222,82 +276,124 @@
             return;
         }
 
-        // --- Obtenir l'ID du stagiaire connecté ---
-        // CETTE SECTION EST UN PLACEHOLDER ET DOIT ÊTRE ADAPTÉE À VOTRE SYSTÈME D'AUTHENTIFICATION
-        int currentStagiaireId = 0;
-        // Exemple : currentStagiaireId = await GetCurrentUserIdFromAuthAsync();
-        // !! Pour l'instant, currentStagiaireId = 0 causera une erreur plus bas.
-        // !! IMPÉRATIF : Implémentez la récupération de l'ID du stagiaire réel.
-        if (currentStagiaireId == 0)
-        {
-            Logger.LogError("[BlazorAppLog Retard] ID Stagiaire est à 0. La logique d'authentification doit être implémentée.");
-            errorMessageForDisplay = "ERREUR DE CONFIGURATION : L'identifiant du stagiaire n'a pas pu être déterminé.";
-            isSubmitting = false;
-            StateHasChanged();
-            return;
-        }
+        // ... (Logique de sauvegarde du fichier justificatif) ...
+        // que tu avais déjà
 
         string? nomFichierSauvegardePourBDD = null;
-        if (Model.JustificatifFile != null && !isFileErrorActive)
+        if (Model.JustificatifFile != null && !isFileErrorActive) // Model.JustificatifFile est de type IBrowserFile?
         {
+            // ... (ta logique de sauvegarde de fichier, elle semble correcte)
+        }
+
+        // Construction de l'objet Retard
+        var raisonSelectionnee = raisonsRetard?.FirstOrDefault(r => r.IdRaisonRetard == Model.IdRaisonRetard);
+        if (raisonSelectionnee == null && Model.IdRaisonRetard != 0) // Si un ID est sélectionné mais non trouvé (ne devrait pas arriver si la liste est à jour)
+        {
+            errorMessageForDisplay = "La raison du retard sélectionnée est invalide.";
+            isSubmitting = false; StateHasChanged(); return;
+        }
+
+        // Le Motif est UNIQUEMENT le libellé de la raison sélectionnée.
+        string motifPourEnregistrement = raisonSelectionnee?.Libelle ?? "Raison non spécifiée";
+
+        // Les détails saisis par l'utilisateur vont dans le champ 'Details' dédié.
+        string detailsPourEnregistrement = Model.DetailsRetard ?? string.Empty; // Model.DetailsRetard vient de ton InputTextArea
+
+        var nouveauRetard = new Retard
+        {
+            DateArrivee = Model.DateArrivee,
+            Justificatif = nomFichierSauvegardePourBDD,
+            Motif = motifPourEnregistrement,     // ✅ Ne contient QUE le libellé de la raison principale
+            Details = detailsPourEnregistrement, // ✅ Contient les détails saisis par l'utilisateur
+            IdStagiaire = currentStagiaireId,
+            Stagiaire = stagiaireConnecte     // Assure-toi que stagiaireConnecte est bien l'entité suivie (pas de .AsNoTracking())
+        };
+
+        // --- Logique de sauvegarde en base de données ---
+        try
+        {
+            if (DbContext.Retards == null) // Vérification paranoïaque
+            {
+                Logger.LogError("[BlazorAppLog Retard] Le DbSet Retards est null dans ApplicationDbContext.");
+                errorMessageForDisplay = "Erreur de configuration de la base de données (Retards).";
+                isSubmitting = false; StateHasChanged(); return;
+            }
+
+            DbContext.Retards.Add(nouveauRetard);
+            await DbContext.SaveChangesAsync();
+
+            Logger.LogInformation("[BlazorAppLog Retard] Retard (ID: {RetardId}) pour Stagiaire ID: {StagiaireId} sauvegardé.", nouveauRetard.IdRetard, currentStagiaireId);
+            successMessage = "Votre déclaration de retard a été enregistrée !";
+            Model = new RetardFormModel(); // Réinitialiser
+            fileErrorMessage = null;
+            isFileErrorActive = false;
+            errorMessageForDisplay = null;
+        }
+        catch (DbUpdateException dbEx)
+        {
+            Logger.LogError(dbEx, "[BlazorAppLog Retard] Erreur DbUpdateException: {InnerEx}", dbEx.InnerException?.Message);
+            errorMessageForDisplay = $"Erreur BDD: {dbEx.InnerException?.Message ?? dbEx.Message}.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "[BlazorAppLog Retard] Erreur générale sauvegarde retard.");
+            errorMessageForDisplay = $"Erreur générale: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool userIsStagiaire = false; // Nouvelle variable d'état
+
+    protected override async Task OnInitializedAsync()
+    {
+        Logger.LogInformation("[BlazorAppLog Retard] Initialisation de la page DeclarerUnRetard.");
+        
+        // Vérifier le rôle de l'utilisateur
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated && user.IsInRole("Stagiaire"))
+        {
+            userIsStagiaire = true;
+            Logger.LogInformation("[BlazorAppLog Retard] L'utilisateur est un Stagiaire.");
+            // Continuer avec le chargement des raisons de retard
+            isLoadingReasons = true;
             try
             {
-                var nomFichierOriginal = Path.GetFileName(Model.JustificatifFile.Name);
-                var extensionFichier = Path.GetExtension(nomFichierOriginal);
-                nomFichierSauvegardePourBDD = $"{Guid.NewGuid()}{extensionFichier}";
-
-                var dossierDeSauvegarde = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "justificatifs_retards");
-                if (!Directory.Exists(dossierDeSauvegarde))
+                if (DbContext.RaisonsRetard != null)
                 {
-                    Directory.CreateDirectory(dossierDeSauvegarde);
+                    raisonsRetard = await DbContext.RaisonsRetard.AsNoTracking().ToListAsync();
+                    Logger.LogInformation("[BlazorAppLog Retard] {Count} raisons de retard chargées.", raisonsRetard?.Count ?? 0);
                 }
-                var cheminCompletFichier = Path.Combine(dossierDeSauvegarde, nomFichierSauvegardePourBDD);
-
-                await using var stream = new FileStream(cheminCompletFichier, FileMode.Create);
-                await Model.JustificatifFile.OpenReadStream(MAX_FILE_SIZE).CopyToAsync(stream);
-                Logger.LogInformation("[BlazorAppLog Retard] Fichier '{OriginalName}' sauvegardé: {SavedName}", nomFichierOriginal, nomFichierSauvegardePourBDD);
+                // ... (le reste de ta logique de chargement des raisons)
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "[BlazorAppLog Retard] Erreur sauvegarde fichier justificatif.");
-                errorMessageForDisplay = $"Erreur traitement fichier: {ex.Message}";
-                isSubmitting = false; StateHasChanged(); return;
+                // ... (ta gestion d'erreur existante)
+            }
+            finally
+            {
+                isLoadingReasons = false;
             }
         }
-
-
-        //     TODO: Save un nouveau Retard (similaire à absence)
-        // try
-        // {
-        //     if (DbContext.Retards == null || DbContext.RetardStagiaires == null || DbContext.RaisonsRetard == null)
-        //     {
-        //         Logger.LogError("[BlazorAppLog Retard] Un ou plusieurs DbSets nécessaires sont null.");
-        //         errorMessageForDisplay = "Erreur de configuration de la base de données.";
-        //         isSubmitting = false; StateHasChanged(); return;
-        //     }
-
-
-        //     Logger.LogInformation("[BlazorAppLog Retard] Retard (ID: {RetardId}) et liaison stagiaire sauvegardés.", nouveauRetard.IdRetard);
-        //     successMessage = "Votre déclaration de retard a été enregistrée !";
-        //     Model = new RetardFormModel();
-        //     fileErrorMessage = null; isFileErrorActive = false; errorMessageForDisplay = null;
-        // }
-        // catch (DbUpdateException dbEx)
-        // {
-        //     Logger.LogError(dbEx, "[BlazorAppLog Retard] Erreur DbUpdateException: {InnerEx}", dbEx.InnerException?.Message);
-        //     errorMessageForDisplay = $"Erreur BDD: {dbEx.InnerException?.Message ?? dbEx.Message}.";
-        // }
-        // catch (Exception ex)
-        // {
-        //     Logger.LogError(ex, "[BlazorAppLog Retard] Erreur générale sauvegarde.");
-        //     errorMessageForDisplay = $"Erreur générale: {ex.Message}";
-        // }
-        // finally
-        // {
-        //     isSubmitting = false;
-        //     StateHasChanged();
-        // }
+        else
+        {
+            userIsStagiaire = false;
+            isLoadingReasons = false; // Pas besoin de charger si pas stagiaire
+            if (user.Identity != null && user.Identity.IsAuthenticated) {
+                Logger.LogWarning("[BlazorAppLog Retard] L'utilisateur {UserName} n'est pas un Stagiaire.", user.Identity.Name);
+                errorMessageForDisplay = "Seuls les stagiaires peuvent déclarer un retard.";
+            } else {
+                Logger.LogWarning("[BlazorAppLog Retard] Utilisateur non authentifié tentant d'accéder à la déclaration de retard.");
+                errorMessageForDisplay = "Vous devez être connecté en tant que stagiaire pour déclarer un retard.";
+            }
+        }
     }
+
     // protected override async Task OnInitializedAsync()
     // {
     //     Logger.LogInformation("[BlazorAppLog Retard] Initialisation de la page DeclarerUnRetard, chargement des raisons.");
@@ -306,15 +402,15 @@
     //     {
     //         // Assure-toi que DbContext.RaisonsRetard existe et est configuré.
     //         // Si RaisonsRetard n'est pas le nom de ton DbSet, ajuste-le.
-    //         if (DbContext.Retards != null) // Vérification que le DbSet n'est pas null
+    //         if (DbContext.RaisonsRetard != null) // Vérification que le DbSet n'est pas null
     //         {
-    //             raisonsRetard = await DbContext.Retards.AsNoTracking().ToListAsync();
+    //             raisonsRetard = await DbContext.RaisonsRetard.AsNoTracking().ToListAsync();
     //             Logger.LogInformation("[BlazorAppLog Retard] {Count} raisons de retard chargées.", raisonsRetard.Count);
     //         }
     //         else
     //         {
     //             Logger.LogError("[BlazorAppLog Retard] Le DbSet RaisonsRetard est null dans ApplicationDbContext.");
-    //             raisonsRetard = new List<Retard>(); // Initialiser à une liste vide pour éviter null ref plus loin
+    //             raisonsRetard = new List<RaisonRetard>(); // Initialiser à une liste vide pour éviter null ref plus loin
     //             errorMessageForDisplay = "Erreur de configuration: Impossible de charger les raisons des retards (DbSet manquant).";
     //         }
     //     }
