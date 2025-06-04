@@ -211,6 +211,24 @@ namespace AdminMns.Migrations
                     b.ToTable("Documents");
                 });
 
+            modelBuilder.Entity("AdminMns.Models.RaisonRetard", b =>
+                {
+                    b.Property<int>("IdRaisonRetard")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IdRaisonRetard"));
+
+                    b.Property<string>("Libelle")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.HasKey("IdRaisonRetard");
+
+                    b.ToTable("RaisonsRetard");
+                });
+
             modelBuilder.Entity("AdminMns.Models.Retard", b =>
                 {
                     b.Property<int>("IdRetard")
@@ -236,8 +254,8 @@ namespace AdminMns.Migrations
 
                     b.Property<string>("Motif")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
 
                     b.HasKey("IdRetard");
 
